@@ -17,6 +17,10 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":common"))
+
+    implementation(libs.fusion.paper)
+
     implementation(libs.metrics)
 
     compileOnly(libs.informative.annotations)
