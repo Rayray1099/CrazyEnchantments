@@ -27,10 +27,10 @@ public class AllyManager {
     private final Map<AllyType, String> allyTypeNameCache = new HashMap<>();
     
     public void load() {
-        FileConfiguration config = Files.CONFIG.getFile();
-        String allyTypePath = "Settings.EnchantmentOptions.Ally-Mobs.";
+        final FileConfiguration config = Files.CONFIG.getFile();
+        final String allyTypePath = "Settings.EnchantmentOptions.Ally-Mobs.";
 
-        for (AllyType type : AllyType.values()) {
+        for (final AllyType type : AllyType.values()) {
             this.allyTypeNameCache.put(type, ColorUtils.color(config.getString(allyTypePath + type.getConfigName(), type.getDefaultName())));
         }
     }
@@ -39,25 +39,29 @@ public class AllyManager {
         return this.allyMobs;
     }
     
-    public void addAllyMob(AllyMob allyMob) {
+    public void addAllyMob(final AllyMob allyMob) {
         if (allyMob != null) {
             this.allyMobs.add(allyMob);
-            UUID owner = allyMob.getOwner().getUniqueId();
+
+            final UUID owner = allyMob.getOwner().getUniqueId();
 
             if (this.allyOwners.containsKey(owner)) {
                 this.allyOwners.get(owner).add(allyMob);
             } else {
-                List<AllyMob> allies = new ArrayList<>();
+                final List<AllyMob> allies = new ArrayList<>();
+
                 allies.add(allyMob);
+
                 this.allyOwners.put(owner, allies);
             }
         }
     }
     
-    public void removeAllyMob(AllyMob allyMob) {
+    public void removeAllyMob(final AllyMob allyMob) {
         if (allyMob != null) {
             this.allyMobs.remove(allyMob);
-            UUID owner = allyMob.getOwner().getUniqueId();
+
+            final UUID owner = allyMob.getOwner().getUniqueId();
 
             if (this.allyOwners.containsKey(owner)) {
                 this.allyOwners.get(owner).add(allyMob);
@@ -69,19 +73,22 @@ public class AllyManager {
     
     public void forceRemoveAllies() {
         if (!this.allyMobs.isEmpty()) {
-            for (AllyMob ally : this.allyMobs) {
-                LivingEntity allyLE = ally.getAlly();
+            for (final AllyMob ally : this.allyMobs) {
+                final LivingEntity allyLE = ally.getAlly();
+
                 allyLE.getScheduler().run(plugin, task -> allyLE.remove(), null);
             }
+
             this.allyMobs.clear();
             this.allyOwners.clear();
         }
     }
     
-    public void forceRemoveAllies(Player owner) {
-        for (AllyMob ally : this.allyOwners.getOrDefault(owner.getUniqueId(), new ArrayList<>())) {
-            LivingEntity allyLE = ally.getAlly();
-            allyLE.getScheduler().run(plugin, task -> {
+    public void forceRemoveAllies(final Player owner) {
+        for (final AllyMob ally : this.allyOwners.getOrDefault(owner.getUniqueId(), new ArrayList<>())) {
+            final LivingEntity allyLE = ally.getAlly();
+
+            allyLE.getScheduler().run(plugin, task -> { //todo() use folia runnable from fusion
                 allyLE.remove();
                 this.allyMobs.remove(ally);
             }, null);
@@ -90,7 +97,8 @@ public class AllyManager {
         this.allyOwners.remove(owner.getUniqueId());
     }
     
-    public void setEnemy(Player owner, Entity enemy) {
+    public void setEnemy(final Player owner, final Entity enemy) {
+        //todo() folia runnable
         this.allyOwners.getOrDefault(owner.getUniqueId(), new ArrayList<>()).forEach(ally ->
             ally.getAlly().getScheduler().run(plugin, task -> ally.attackEnemy((LivingEntity) enemy), null));
     }
@@ -99,26 +107,26 @@ public class AllyManager {
         return this.allyTypeNameCache;
     }
     
-    public boolean isAlly(Player player, Entity livingEntity) {
+    public boolean isAlly(final Player player, final Entity livingEntity) {
         if (isAllyMob(livingEntity)) return isAlly(player, getAllyMob(livingEntity));
 
         return false;
     }
     
-    public boolean isAlly(Player player, AllyMob ally) {
+    public boolean isAlly(final Player player, final AllyMob ally) {
         return ally.getOwner().getUniqueId() == player.getUniqueId();
     }
     
-    public boolean isAllyMob(Entity livingEntity) {
-        for (AllyMob ally : this.allyMobs) {
+    public boolean isAllyMob(final Entity livingEntity) {
+        for (final AllyMob ally : this.allyMobs) {
             if (ally.getAlly().getUniqueId() == livingEntity.getUniqueId()) return true;
         }
 
         return false;
     }
     
-    public AllyMob getAllyMob(Entity livingEntity) {
-        for (AllyMob ally : this.allyMobs) {
+    public AllyMob getAllyMob(final Entity livingEntity) {
+        for (final AllyMob ally : this.allyMobs) {
             if (ally.getAlly().getUniqueId() == livingEntity.getUniqueId()) return ally;
         }
 

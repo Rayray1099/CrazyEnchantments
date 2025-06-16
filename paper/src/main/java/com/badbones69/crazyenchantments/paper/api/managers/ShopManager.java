@@ -37,18 +37,21 @@ public class ShopManager {
     public void load() {
         this.customizerItems.clear();
         this.shopItems.clear();
-        FileConfiguration config = Files.CONFIG.getFile();
-        this.inventoryName = ColorUtils.color(config.getString("Settings.InvName"));
-        this.inventorySize = config.getInt("Settings.GUISize");
-        this.enchantmentTableShop = config.getBoolean("Settings.EnchantmentOptions.Right-Click-Enchantment-Table");
+        final FileConfiguration config = Files.CONFIG.getFile();
 
-        for (String customItemString : config.getStringList("Settings.GUICustomization")) {
+        this.inventoryName = ColorUtils.color(config.getString("Settings.InvName", "&4&l&nCrazy Enchanter"));
+        this.inventorySize = config.getInt("Settings.GUISize", 54);
+        this.enchantmentTableShop = config.getBoolean("Settings.EnchantmentOptions.Right-Click-Enchantment-Table", false);
+
+        for (final String customItemString : config.getStringList("Settings.GUICustomization")) {
             int slot = 0;
 
             for (String option : customItemString.split(", ")) {
                 if (option.contains("Slot:")) {
                     option = option.replace("Slot:", "");
+
                     slot = Integer.parseInt(option);
+
                     break;
                 }
             }
@@ -56,17 +59,18 @@ public class ShopManager {
             if (slot > this.inventorySize || slot <= 0) continue;
 
             slot--;
+
             this.customizerItems.put(ItemBuilder.convertString(customItemString), slot);
         }
 
-        for (Category category : this.enchantmentBookSettings.getCategories()) {
+        for (final Category category : this.enchantmentBookSettings.getCategories()) {
             if (category.isInGUI()) {
                 if (category.getSlot() > this.inventorySize) continue;
 
                 this.shopItems.put(category.getDisplayItem(), category.getSlot());
             }
 
-            LostBook lostBook = category.getLostBook();
+            final LostBook lostBook = category.getLostBook();
 
             if (lostBook.isInGUI()) {
                 if (lostBook.getSlot() > this.inventorySize) continue;
@@ -75,7 +79,7 @@ public class ShopManager {
             }
         }
 
-        for (ShopOption option : ShopOption.values()) {
+        for (final ShopOption option : ShopOption.values()) {
             if (option.isInGUI()) {
                 if (option.getSlot() > this.inventorySize) continue;
 

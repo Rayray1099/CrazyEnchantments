@@ -225,8 +225,11 @@ public class Methods {
      * @param item The {@link ItemStack} to give to the player.
      */
     public void addItemToInventory(@NotNull Player player, @NotNull ItemStack item) {
-        player.getInventory().addItem(item).values().forEach(x -> player.getWorld().dropItem(player.getLocation(), x));
+        final World world = player.getWorld();
+        final Location loc = player.getLocation();
+        player.getInventory().addItem(item).values().forEach(x -> world.dropItem(loc, x));
     }
+
     public void addItemToInventory(@NotNull Player player, @NotNull List<Item> itemList) {
         itemList.forEach(x -> addItemToInventory(player, x.getItemStack()));
     }
@@ -266,7 +269,7 @@ public class Methods {
 
         this.plugin.getFireworkDamageListener().addFirework(firework);
 
-        this.plugin.getServer().getRegionScheduler().runDelayed(this.plugin, loc, task -> firework.detonate(), 2);
+        this.plugin.getServer().getRegionScheduler().runDelayed(this.plugin, loc, task -> firework.detonate(), 2); //todo() fusion api
     }
 
     public Enchantment getEnchantment(@NotNull String enchantmentName) {

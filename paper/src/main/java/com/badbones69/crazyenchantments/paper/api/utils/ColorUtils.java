@@ -11,7 +11,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -21,9 +20,9 @@ import static java.util.regex.Matcher.quoteReplacement;
 
 public class ColorUtils {
 
-    public static void color(List<Color> colors, String colorString) {
+    public static void color(final List<Color> colors, final String colorString) {
         if (colorString.contains(", ")) {
-            for (String key : colorString.split(", ")) {
+            for (final String key : colorString.split(", ")) {
                 Color color = getColor(key);
 
                 if (color != null) colors.add(color);
@@ -35,7 +34,7 @@ public class ColorUtils {
         }
     }
 
-    public static Color getColor(String color) {
+    public static Color getColor(final String color) {
         return switch (color.toUpperCase()) {
             case "AQUA" -> Color.AQUA;
             case "BLACK" -> Color.BLACK;
@@ -57,7 +56,7 @@ public class ColorUtils {
         };
     }
 
-    public static String color(String message) { //TODO Remove the usage of bungee.
+    public static String color(final String message) { //TODO Remove the usage of bungee.
         Matcher matcher = Pattern.compile("#[a-fA-F\\d]{6}").matcher(message);
         StringBuilder buffer = new StringBuilder();
 
@@ -68,7 +67,7 @@ public class ColorUtils {
         return ChatColor.translateAlternateColorCodes('&', matcher.appendTail(buffer).toString());
     }
 
-    public static void sendMessage(CommandSender commandSender, String message, boolean prefixToggle) {
+    public static void sendMessage(final CommandSender commandSender, final String message, final boolean prefixToggle) {
         if (message == null || message.isEmpty()) return;
 
         String prefix = getPrefix();
@@ -83,34 +82,22 @@ public class ColorUtils {
     }
 
     public static String getPrefix() {
-        return color(Files.CONFIG.getFile().getString("Settings.Prefix"));
+        return color(Files.CONFIG.getFile().getString("Settings.Prefix", "&8[&aCrazyEnchantments&8]: "));
     }
 
-    public static String getPrefix(String msg) {
+    public static String getPrefix(final String msg) {
         return color(getPrefix() + msg);
     }
 
-    public static String sanitizeColor(String msg) {
-        return sanitizeFormat(color(msg));
+    public static net.kyori.adventure.text.TextComponent legacyTranslateColourCodes(final String input) {
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(input).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
-    public static String sanitizeFormat(String string) {
-        return TextComponent.toLegacyText(TextComponent.fromLegacyText(string));
-    }
-
-    public static String removeColor(String msg) {
-        return ChatColor.stripColor(msg);
-    }
-
-    public static net.kyori.adventure.text.TextComponent legacyTranslateColourCodes(String input) {
-        return (net.kyori.adventure.text.TextComponent) LegacyComponentSerializer.legacyAmpersand().deserialize(input).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
-    }
-
-    public static String toLegacy(Component text) {
+    public static String toLegacy(final Component text) {
         return LegacyComponentSerializer.legacyAmpersand().serialize(text).replaceAll("§", "&").replaceAll("&&", "&");
     }
 
-    public static String toPlainText(Component text) {
+    public static String toPlainText(final Component text) {
         return PlainTextComponentSerializer.plainText().serialize(text);
     }
 
@@ -138,7 +125,7 @@ public class ColorUtils {
         return new ItemBuilder().setMaterial(colors.get(random.nextInt(colors.size())));
     }
 
-    public static String stripStringColour(String s) {
+    public static String stripStringColour(final String s) {
         return s.replaceAll("([&§]?#[0-9a-fA-F]{6}|[&§][1-9a-fA-Fk-or])", "");
     }
 }

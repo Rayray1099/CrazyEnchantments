@@ -27,24 +27,26 @@ public class EnchantmentType {
     private final List<CEnchantment> enchantments = new ArrayList<>();
     private final List<Material> enchantableMaterials = new ArrayList<>();
 
-    public EnchantmentType(String name) {
-        FileConfiguration file = Files.ENCHANTMENT_TYPES.getFile();
+    public EnchantmentType(final String name) {
+        final FileConfiguration file = Files.ENCHANTMENT_TYPES.getFile();
         String path = "Types." + name;
+
         this.displayName = name;
+
         this.slot = file.getInt(path + ".Display-Item.Slot", 1) - 1;
-        this.displayItem = new ItemBuilder()
-        .setMaterial(file.getString(path + ".Display-Item.Item", "STONE"))
+
+        this.displayItem = new ItemBuilder().setMaterial(file.getString(path + ".Display-Item.Item", "STONE"))
         .setName(file.getString(path + ".Display-Item.Name", "Error getting name."))
         .setLore(file.getStringList(path + ".Display-Item.Lore")).build();
 
-        for (String type : file.getStringList(path + ".Enchantable-Items")) {
+        for (final String type : file.getStringList(path + ".Enchantable-Items")) {
             Material material = new ItemBuilder().setMaterial(type).getMaterial();
 
             if (material != null) this.enchantableMaterials.add(material);
         }
     }
 
-    public EnchantmentType getFromName(String name) {
+    public EnchantmentType getFromName(final String name) {
         return this.methods.getFromName(name);
     }
 
@@ -71,7 +73,7 @@ public class EnchantmentType {
      * @param item Item to test
      * @return True if the cEnchantment may be applied, otherwise False
      */
-    public boolean canEnchantItem(@NotNull ItemStack item) {
+    public boolean canEnchantItem(@NotNull final ItemStack item) {
         return this.enchantableMaterials.contains(item.getType());
     }
 
@@ -79,11 +81,11 @@ public class EnchantmentType {
         return this.enchantments;
     }
 
-    public void addEnchantment(CEnchantment enchantment) {
+    public void addEnchantment(final CEnchantment enchantment) {
         this.enchantments.add(enchantment);
     }
 
-    public void removeEnchantment(CEnchantment enchantment) {
+    public void removeEnchantment(final CEnchantment enchantment) {
         this.enchantments.remove(enchantment);
     }
 }

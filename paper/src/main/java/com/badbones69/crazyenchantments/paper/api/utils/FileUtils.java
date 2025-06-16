@@ -11,12 +11,12 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 
-public class FileUtils {
+public class FileUtils { //todo() use fusion api
 
     @NotNull
     private final static CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    public static void copyFiles(Path directory, String folder, List<String> names) {
+    public static void copyFiles(final Path directory, final String folder, final List<String> names) {
         names.forEach(name -> copyFile(directory, folder, name));
     }
 
@@ -50,7 +50,7 @@ public class FileUtils {
         ).forEach(name -> copyFile(file.toPath(), name));
     }
 
-    public static void copyFile(Path directory, String name) {
+    public static void copyFile(final Path directory, final String name) {
         File file = directory.resolve(name).toFile();
 
         if (file.exists()) return;
@@ -69,7 +69,7 @@ public class FileUtils {
         getResource(name, file, loader);
     }
 
-    private static void getResource(String name, File file, ClassLoader loader) {
+    private static void getResource(final String name, final File file, final ClassLoader loader) {
         URL resource = loader.getResource(name);
 
         if (resource == null) {
@@ -85,7 +85,7 @@ public class FileUtils {
         }
     }
 
-    public static void copyFile(Path directory, String folder, String name) {
+    public static void copyFile(final Path directory, final String folder, final String name) {
         File file = directory.resolve(name).toFile();
 
         if (file.exists()) return;
@@ -105,7 +105,7 @@ public class FileUtils {
         getResource(url, file, loader);
     }
 
-    private static void grab(InputStream input, File output) throws Exception {
+    private static void grab(final InputStream input, final File output) throws Exception {
         try (InputStream inputStream = input; FileOutputStream outputStream = new FileOutputStream(output)) {
             byte[] buf = new byte[1024];
             int i;

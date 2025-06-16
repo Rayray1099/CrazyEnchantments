@@ -19,7 +19,6 @@ import com.badbones69.crazyenchantments.paper.support.PluginSupport;
 import com.badbones69.crazyenchantments.paper.tasks.processors.ArmorProcessor;
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
@@ -38,12 +37,12 @@ import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,7 +58,7 @@ public class ArmorEnchantments implements Listener {
     private final Methods methods = this.starter.getMethods();
 
     @NotNull
-    private final CrazyManager crazyManager = this.starter.getCrazyManager();
+    private final CrazyManager crazyManager = this.plugin.getCrazyManager();
 
     // Settings.
     @NotNull
@@ -91,28 +90,24 @@ public class ArmorEnchantments implements Listener {
     @EventHandler
     public void onDeath(EntityResurrectEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        ItemStack air = new ItemStack(Material.AIR);
 
-        player.getScheduler().runDelayed(this.plugin, playerTask -> newUpdateEffects(player, air, air), null, 10);
+        final ItemStack air = ItemType.AIR.createItemStack(1);
+
+        player.getScheduler().runDelayed(this.plugin, playerTask -> newUpdateEffects(player, air, air), null, 10); //todo() fusion api
     }
 
     @EventHandler
     public void onEquip(PlayerArmorChangeEvent event) {
-        NamespacedKey key = DataKeys.enchantments.getNamespacedKey();
-        Player player = event.getPlayer();
-        ItemStack newItem = event.getNewItem();
-        ItemStack oldItem = event.getOldItem();
-        boolean oldHasMeta = oldItem.hasItemMeta();
-        boolean newHasMeta = newItem.hasItemMeta();
+        final NamespacedKey key = DataKeys.enchantments.getNamespacedKey();
+        final Player player = event.getPlayer();
+        final ItemStack newItem = event.getNewItem();
+        final ItemStack oldItem = event.getOldItem();
 
         // Return if no enchants would effect the player with the change.
-        if ((!newHasMeta || !newItem.getItemMeta().getPersistentDataContainer().has(key))
-             && (!oldHasMeta || !oldItem.getItemMeta().getPersistentDataContainer().has(key))) return;
+        if (!newItem.getPersistentDataContainer().has(key) && oldItem.getPersistentDataContainer().has(key)) return; //todo() make sure this still does what it's suppose to do?
 
         // Added to prevent armor change event being called on damage.
-        if (newHasMeta && oldHasMeta
-            && Objects.equals(newItem.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING),
-                              oldItem.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING))) return;
+        if (Objects.equals(newItem.getPersistentDataContainer().get(key, PersistentDataType.STRING), oldItem.getPersistentDataContainer().get(key, PersistentDataType.STRING))) return;
 
         newUpdateEffects(player, newItem, oldItem);
     }
@@ -125,8 +120,8 @@ public class ArmorEnchantments implements Listener {
      * @param newItem The new item equipped.
      * @param oldItem The item that had previously been equipped.
      */
-    private void newUpdateEffects(@NotNull Player player, @NotNull ItemStack newItem, @NotNull ItemStack oldItem) {
-        Map<CEnchantment, Integer> topEnchants = currentEnchantsOnPlayerAdded(player, newItem);
+    private void newUpdateEffects(@NotNull final Player player, @NotNull final ItemStack newItem, @NotNull final ItemStack oldItem) {
+        final Map<CEnchantment, Integer> topEnchants = currentEnchantsOnPlayerAdded(player, newItem);
 
         // Remove all effects that they no longer should have from the armor.
         if (!oldItem.isEmpty()) {
@@ -139,14 +134,16 @@ public class ArmorEnchantments implements Listener {
         }
 
         // Add all new effects that said player should now have.
-        for (Map.Entry<PotionEffectType, Integer> effect : getTopPotionEffects(topEnchants).entrySet()) {
-            for (PotionEffect currentEffect : player.getActivePotionEffects()) {
+        for (final Map.Entry<PotionEffectType, Integer> effect : getTopPotionEffects(topEnchants).entrySet()) {
+            for (final PotionEffect currentEffect : player.getActivePotionEffects()) {
                 if (!currentEffect.getType().equals(effect.getKey())) continue;
                 if (currentEffect.getAmplifier() >= effect.getValue() - 1) break;
 
                 player.removePotionEffect(effect.getKey());
+
                 break;
             }
+
             player.addPotionEffect(new PotionEffect(effect.getKey(), -1, effect.getValue() - 1));
         }
     }
@@ -157,9 +154,9 @@ public class ArmorEnchantments implements Listener {
      * @return Returns a list of top potion effects from the provided list of enchantments.
      */
     @NotNull
-    private Map<PotionEffectType, Integer> getTopPotionEffects(@NotNull Map<CEnchantment, Integer> topEnchants) {
-        Map<CEnchantments, HashMap<PotionEffectType, Integer>> enchantmentPotions = this.crazyManager.getEnchantmentPotions();
-        HashMap<PotionEffectType, Integer> topPotions = new HashMap<>();
+    private Map<PotionEffectType, Integer> getTopPotionEffects(@NotNull final Map<CEnchantment, Integer> topEnchants) {
+        final Map<CEnchantments, HashMap<PotionEffectType, Integer>> enchantmentPotions = this.crazyManager.getEnchantmentPotions();
+        final Map<PotionEffectType, Integer> topPotions = new HashMap<>();
 
         topEnchants.forEach((key, value) -> enchantmentPotions.entrySet()
                 .stream().filter(enchantedPotion -> enchantedPotion.getKey().getEnchantment().equals(key))
@@ -177,8 +174,8 @@ public class ArmorEnchantments implements Listener {
      * @return Returns a map of all current active enchants on the specified player.
      */
     @NotNull
-    private HashMap<CEnchantment, Integer> currentEnchantsOnPlayerAdded(@NotNull Player player, @NotNull ItemStack newItem) {
-        HashMap<CEnchantment, Integer> toAdd = getTopEnchantsOnPlayer(player);
+    private Map<CEnchantment, Integer> currentEnchantsOnPlayerAdded(@NotNull Player player, @NotNull ItemStack newItem) {
+        Map<CEnchantment, Integer> toAdd = getTopEnchantsOnPlayer(player);
 
         if (!newItem.isEmpty()) {
             this.enchantmentBookSettings.getEnchantments(newItem).entrySet().stream()
@@ -196,8 +193,8 @@ public class ArmorEnchantments implements Listener {
      * @return A list of {@link CEnchantments}'s on the player.
      */
     @NotNull
-    private HashMap<CEnchantment, Integer> getTopEnchantsOnPlayer(@NotNull Player player) {
-        HashMap<CEnchantment, Integer> topEnchants = new HashMap<>();
+    private Map<CEnchantment, Integer> getTopEnchantsOnPlayer(@NotNull Player player) {
+        Map<CEnchantment, Integer> topEnchants = new HashMap<>();
 
         Arrays.stream(player.getEquipment().getArmorContents())
                 .map(this.enchantmentBookSettings::getEnchantments)
@@ -215,17 +212,17 @@ public class ArmorEnchantments implements Listener {
 
         if (!(event.getDamager() instanceof LivingEntity damager) || !(event.getEntity() instanceof Player player)) return;
 
-        for (ItemStack armor : player.getEquipment().getArmorContents()) {
+        for (final ItemStack armor : player.getEquipment().getArmorContents()) {
             Map<CEnchantment, Integer> enchants = this.enchantmentBookSettings.getEnchantments(armor);
+
             if (enchants.isEmpty()) continue;
 
-            for (ArmorEnchantment armorEnchantment : this.armorEnchantmentManager.getArmorEnchantments()) {
-                CEnchantments enchantment = armorEnchantment.getEnchantment();
+            for (final ArmorEnchantment armorEnchantment : this.armorEnchantmentManager.getArmorEnchantments()) {
+                final CEnchantments enchantment = armorEnchantment.getEnchantment();
 
                 if (EnchantUtils.isEventActive(enchantment, player, armor, enchants)) {
-
                     if (armorEnchantment.isPotionEnchantment()) {
-                        for (PotionEffects effect : armorEnchantment.getPotionEffects()) {
+                        for (final PotionEffects effect : armorEnchantment.getPotionEffects()) {
                             damager.addPotionEffect(new PotionEffect(effect.potionEffect(), effect.duration(), (armorEnchantment.isLevelAddedToAmplifier() ? enchants.get(enchantment.getEnchantment()) : 0) + effect.amplifier()));
                         }
                     } else {
@@ -236,6 +233,7 @@ public class ArmorEnchantments implements Listener {
 
             if (EnchantUtils.isEventActive(CEnchantments.MANEUVER, player, armor, enchants)) {
                 event.setCancelled(true);
+
                 return;
             }
 
@@ -253,7 +251,8 @@ public class ArmorEnchantments implements Listener {
             }
 
             if (player.getHealth() <= event.getFinalDamage() && EnchantUtils.isEventActive(CEnchantments.SYSTEMREBOOT, player, armor, enchants)) {
-                player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+                player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue()); //todo() deprecated
+
                 event.setCancelled(true);
 
                 return;
@@ -271,13 +270,13 @@ public class ArmorEnchantments implements Listener {
                 //todo() is this EXPLOSION_HUGE?
                 player.getWorld().spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
 
-                player.getScheduler().runDelayed(this.plugin, playerTask -> fallenPlayers.remove(player.getUniqueId()), null, 8 * 20);
+                player.getScheduler().runDelayed(this.plugin, playerTask -> fallenPlayers.remove(player.getUniqueId()), null, 8 * 20); //todo() folia scheduler from fusion
             }
 
             if (player.getHealth() > 0 && EnchantUtils.isEventActive(CEnchantments.ENLIGHTENED, player, armor, enchants)) {
-                double heal = enchants.get(CEnchantments.ENLIGHTENED.getEnchantment());
+                final double heal = enchants.get(CEnchantments.ENLIGHTENED.getEnchantment());
                 // Uses getValue as if the player has health boost it is modifying the base so the value after the modifier is needed.
-                double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
+                final double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue(); //todo() deprecated
 
                 if (player.getHealth() + heal < maxHealth) player.setHealth(player.getHealth() + heal);
 
@@ -293,10 +292,11 @@ public class ArmorEnchantments implements Listener {
             if (EnchantUtils.isEventActive(CEnchantments.CACTUS, player, armor, enchants)) damager.damage(enchants.get(CEnchantments.CACTUS.getEnchantment()));
 
             if (EnchantUtils.isEventActive(CEnchantments.STORMCALLER, player, armor, enchants)) {
-                Entity lightning = this.methods.lightning(damager);
+                final Entity lightning = this.methods.lightning(damager);
 
-                for (LivingEntity en : this.methods.getNearbyLivingEntities(2D, player)) {
-                    EntityDamageEvent damageByEntityEvent = new EntityDamageEvent(en, DamageCause.LIGHTNING, DamageSource.builder(DamageType.LIGHTNING_BOLT).withCausingEntity(player).withDirectEntity(lightning).build(), 5D);
+                for (final LivingEntity en : this.methods.getNearbyLivingEntities(2D, player)) {
+                    final EntityDamageEvent damageByEntityEvent = new EntityDamageEvent(en, DamageCause.LIGHTNING, DamageSource.builder(DamageType.LIGHTNING_BOLT).withCausingEntity(player).withDirectEntity(lightning).build(), 5D);
+
                     this.methods.entityEvent(player, en, damageByEntityEvent);
                 }
 
@@ -306,12 +306,13 @@ public class ArmorEnchantments implements Listener {
 
         if (!(damager instanceof Player)) return;
 
-        for (ItemStack armor : Objects.requireNonNull(damager.getEquipment()).getArmorContents()) {
-            Map<CEnchantment, Integer> enchants = this.enchantmentBookSettings.getEnchantments(armor);
+        for (final ItemStack armor : Objects.requireNonNull(damager.getEquipment()).getArmorContents()) {
+            final Map<CEnchantment, Integer> enchants = this.enchantmentBookSettings.getEnchantments(armor);
+
             if (!enchants.containsKey(CEnchantments.LEADERSHIP.getEnchantment())) continue;
 
-            int radius = 4 + enchants.get(CEnchantments.LEADERSHIP.getEnchantment());
-            int players = (int) damager.getNearbyEntities(radius, radius, radius).stream().filter(entity -> entity instanceof Player && this.pluginSupport.isFriendly(damager, entity)).count();
+            final int radius = 4 + enchants.get(CEnchantments.LEADERSHIP.getEnchantment());
+            final int players = (int) damager.getNearbyEntities(radius, radius, radius).stream().filter(entity -> entity instanceof Player && this.pluginSupport.isFriendly(damager, entity)).count();
 
             if (players > 0 && EnchantUtils.isEventActive(CEnchantments.LEADERSHIP, player, armor, enchants)) {
                 event.setDamage(event.getDamage() + (players / 2d));
@@ -321,18 +322,17 @@ public class ArmorEnchantments implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onAura(AuraActiveEvent event) {
-        Player player = event.getPlayer();
-        Player other = event.getOther();
+        final Player player = event.getPlayer();
+        final Player other = event.getOther();
 
         if (!player.canSee(other) || !other.canSee(player)) return;
-        if (this.pluginSupport.isVanished(player) || this.pluginSupport.isVanished(other)) return;
 
-        CEnchantments enchant = event.getEnchantment();
-        int level = event.getLevel();
+        final CEnchantments enchant = event.getEnchantment();
+        final int level = event.getLevel();
 
         if (!this.pluginSupport.allowCombat(other.getLocation()) || this.pluginSupport.isFriendly(player, other) || this.methods.hasPermission(other, "bypass.aura", false)) return;
 
-        Map<CEnchantment, Integer> enchantments = Map.of(enchant.getEnchantment(), level);
+        final Map<CEnchantment, Integer> enchantments = Map.of(enchant.getEnchantment(), level);
 
         switch (enchant) {
             case BLIZZARD -> {
@@ -359,31 +359,32 @@ public class ArmorEnchantments implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerMovement(PlayerMoveEvent event) {
-        Location from = event.getFrom();
-        Location to = event.getTo();
+        final Location from = event.getFrom();
+        final Location to = event.getTo();
 
         if (from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ()) return;
 
-        armorProcessor.add(event.getPlayer().getUniqueId());
+        this.armorProcessor.add(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
+        final Player player = event.getEntity();
 
         if (player.getKiller() == null) return;
 
-        Player killer = player.getKiller();
+        final Player killer = player.getKiller();
 
         if (!this.pluginSupport.allowCombat(player.getLocation())) return;
 
-        for (ItemStack item : player.getEquipment().getArmorContents()) {
-            Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(item);
+        for (final ItemStack item : player.getEquipment().getArmorContents()) {
+            final Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(item);
 
             if (EnchantUtils.isEventActive(CEnchantments.SELFDESTRUCT, player, item, enchantments)) {
                 this.methods.explode(player);
-                List<ItemStack> items = event.getDrops().stream().filter(drop ->
-                        ProtectionCrystalSettings.isProtected(drop) && this.protectionCrystalSettings.isProtectionSuccessful(player)).toList();
+
+                final List<ItemStack> items = event.getDrops().stream().filter(drop ->
+                        ProtectionCrystalSettings.isProtected(drop.getPersistentDataContainer()) && this.protectionCrystalSettings.isProtectionSuccessful(player)).toList();
 
                 event.getDrops().clear();
                 event.getDrops().addAll(items);

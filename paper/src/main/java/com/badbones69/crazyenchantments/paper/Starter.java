@@ -21,7 +21,6 @@ import com.badbones69.crazyenchantments.paper.listeners.ScrollListener;
 import com.badbones69.crazyenchantments.paper.listeners.SlotCrystalListener;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport.SupportedPlugins;
-import com.badbones69.crazyenchantments.paper.support.SkullCreator;
 import com.badbones69.crazyenchantments.paper.support.claims.SuperiorSkyBlockSupport;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +33,6 @@ public class Starter {
     private FileManager fileManager;
     private CrazyManager crazyManager;
     private Methods methods;
-    private SkullCreator skullCreator;
 
     // Settings.
     private ProtectionCrystalSettings protectionCrystalSettings;
@@ -57,12 +55,6 @@ public class Starter {
 
     // Economy Management.
     private CurrencyAPI currencyAPI;
-
-    // Listeners.
-    private ScramblerListener scramblerListener;
-    private ScrollListener scrollListener;
-    private SlotCrystalListener slotCrystalListener;
-
 
     public void run() {
         this.fileManager = new FileManager();
@@ -97,13 +89,6 @@ public class Starter {
         this.wingsManager = new WingsManager();
         this.allyManager = new AllyManager();
 
-        // Listeners.
-        this.plugin.pluginManager.registerEvents(this.scramblerListener = new ScramblerListener(), this.plugin);
-        this.plugin.pluginManager.registerEvents(this.scrollListener = new ScrollListener(), this.plugin);
-        this.plugin.pluginManager.registerEvents(this.slotCrystalListener = new SlotCrystalListener(), this.plugin);
-
-        this.skullCreator = new SkullCreator();
-
         this.crazyManager = new CrazyManager();
 
         // Plugin Utils.
@@ -122,10 +107,6 @@ public class Starter {
 
     public CrazyManager getCrazyManager() {
         return this.crazyManager;
-    }
-
-    public SkullCreator getSkullCreator() {
-        return this.skullCreator;
     }
 
     // Settings.
@@ -182,19 +163,6 @@ public class Starter {
 
     public ShopManager getShopManager() {
         return this.shopManager;
-    }
-
-    // Listeners.
-    public ScramblerListener getScramblerListener() {
-        return this.scramblerListener;
-    }
-
-    public ScrollListener getScrollListener() {
-        return this.scrollListener;
-    }
-
-    public SlotCrystalListener getSlotCrystalListener() {
-        return this.slotCrystalListener;
     }
 
     // Plugin Utils.

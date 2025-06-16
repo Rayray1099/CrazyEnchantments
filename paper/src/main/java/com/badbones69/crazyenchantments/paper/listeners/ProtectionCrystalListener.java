@@ -16,6 +16,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -37,11 +39,13 @@ public class ProtectionCrystalListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
+        if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        ItemStack crystalItem = event.getCursor();
+        final ItemStack crystalItem = event.getCursor();
 
-        ItemStack item = event.getCurrentItem() != null ? event.getCurrentItem() : new ItemStack(Material.AIR);
+        final ItemStack currentItem = event.getCurrentItem();
+
+        final ItemStack item = currentItem != null ? currentItem : ItemType.AIR.createItemStack(1);
         
         if (item.getType() == Material.AIR || crystalItem.getType() == Material.AIR) return;
 
@@ -49,10 +53,11 @@ public class ProtectionCrystalListener implements Listener {
 
         if (this.protectionCrystalSettings.isProtectionCrystal(item)) return;
 
-        if (ProtectionCrystalSettings.isProtected(item)) return;
+        if (ProtectionCrystalSettings.isProtected(item.getPersistentDataContainer())) return;
 
         if (item.getAmount() > 1 || crystalItem.getAmount() > 1) {
             player.sendMessage(Messages.NEED_TO_UNSTACK_ITEM.getMessage());
+
             return;
         }
 
@@ -67,11 +72,12 @@ public class ProtectionCrystalListener implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (event.getKeepInventory()) return;
 
-        Player player = event.getEntity();
-        List<ItemStack> savedItems = new ArrayList<>();
+        final Player player = event.getEntity();
+
+        final List<ItemStack> savedItems = new ArrayList<>();
 
         for (ItemStack item : event.getDrops()) {
-            if (ProtectionCrystalSettings.isProtected(item) && this.protectionCrystalSettings.isProtectionSuccessful(player)) savedItems.add(item);
+            if (ProtectionCrystalSettings.isProtected(item.getPersistentDataContainer()) && this.protectionCrystalSettings.isProtectionSuccessful(player)) savedItems.add(item);
         }
 
         savedItems.forEach(item -> event.getDrops().remove(item));
@@ -81,17 +87,19 @@ public class ProtectionCrystalListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
         if (this.protectionCrystalSettings.containsPlayer(player)) {
+            final PlayerInventory inventory = player.getInventory();
+
             // If the config does not have the option then it will lose the protection by default.
             if (Files.CONFIG.getFile().getBoolean("Settings.ProtectionCrystal.Lose-Protection-On-Death", true)) {
-                for (ItemStack item : this.protectionCrystalSettings.getCrystalItems().get(player.getUniqueId())) {
-                    player.getInventory().addItem(this.protectionCrystalSettings.removeProtection(item));
+                for (final ItemStack item : this.protectionCrystalSettings.getCrystalItems().get(player.getUniqueId())) {
+                    inventory.addItem(this.protectionCrystalSettings.removeProtection(item));
                 }
             } else {
-                for (ItemStack item : this.protectionCrystalSettings.getPlayer(player)) {
-                    player.getInventory().addItem(item);
+                for (final ItemStack item : this.protectionCrystalSettings.getPlayer(player)) {
+                    inventory.addItem(item);
                 }
             }
 
@@ -101,10 +109,6 @@ public class ProtectionCrystalListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onCrystalClick(PlayerInteractEvent event) {
-        ItemStack item = this.methods.getItemInHand(event.getPlayer());
-
-        if (!item.hasItemMeta()) return;
-
-        if (this.protectionCrystalSettings.isProtectionCrystal(item)) event.setCancelled(true);
+        if (this.protectionCrystalSettings.isProtectionCrystal(this.methods.getItemInHand(event.getPlayer()))) event.setCancelled(true);
     }
 }

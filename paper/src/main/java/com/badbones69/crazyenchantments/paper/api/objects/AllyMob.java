@@ -19,6 +19,7 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
+import java.util.Map;
 
 public class AllyMob {
 
@@ -36,7 +37,7 @@ public class AllyMob {
     private long spawnTime;
     private ScheduledTask runnable;
 
-    public AllyMob(Player owner, AllyType type) {
+    public AllyMob(final Player owner, final AllyType type) {
         this.type = type;
         this.owner = owner;
         this.instance = this;
@@ -54,22 +55,22 @@ public class AllyMob {
         return this.ally;
     }
 
-    public void spawnAlly(long spawnTime) {
+    public void spawnAlly(final long spawnTime) {
         spawnAlly(this.owner.getLocation(), spawnTime);
     }
 
-    public void spawnAlly(Location location, long spawnTime) {
+    public void spawnAlly(final Location location, final long spawnTime) {
         this.spawnTime = spawnTime;
 
         this.ally = (LivingEntity) location.getWorld().spawnEntity(location, this.type.entityType);
 
-        this.ally.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.type.maxHealth);
+        this.ally.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.type.maxHealth); //todo() retarded
 
         this.ally.setHealth(this.type.maxHealth);
 
-        HashMap<String, String> placeholders = new HashMap<>();
+        Map<String, String> placeholders = new HashMap<>();
         placeholders.put("%Player%", this.owner.getName());
-        placeholders.put("%Mob%", this.type.entityType.getName());
+        placeholders.put("%Mob%", this.type.entityType.getName()); //todo() use minimessage
 
         this.ally.setCustomName(Messages.replacePlaceholders(placeholders, this.type.getName()));
         this.ally.setCustomNameVisible(true);
@@ -85,8 +86,8 @@ public class AllyMob {
         this.ally.remove();
     }
 
-    public void attackEnemy(LivingEntity enemy) {
-        this.ally.getScheduler().run(this.plugin, task -> {
+    public void attackEnemy(final LivingEntity enemy) {
+        this.ally.getScheduler().run(this.plugin, task -> { //todo() use fusion api
             switch (this.ally.getType()) {
                 case WOLF -> {
                     Wolf wolf = (Wolf) this.ally;
@@ -124,7 +125,7 @@ public class AllyMob {
     
     private void startSpawnTimer() {
         if (this.ally != null) {
-            this.runnable = new FoliaRunnable(this.ally.getScheduler(), null) {
+            this.runnable = new FoliaRunnable(this.ally.getScheduler(), null) { //todo() use fusion api
                 @Override
                 public void run() {
                     allyManager.removeAllyMob(instance);
@@ -153,7 +154,7 @@ public class AllyMob {
         @NotNull
         private final AllyManager allyManager = this.plugin.getStarter().getAllyManager();
         
-        AllyType(String configName, String defaultName, EntityType entityType, int maxHealth) {
+        AllyType(final String configName, final String defaultName, final EntityType entityType, final int maxHealth) {
             this.configName = configName;
             this.defaultName = defaultName;
             this.entityType = entityType;

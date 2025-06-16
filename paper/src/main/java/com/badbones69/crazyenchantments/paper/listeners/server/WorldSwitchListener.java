@@ -21,11 +21,11 @@ public class WorldSwitchListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onWorldSwitch(PlayerChangedWorldEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
-        FileConfiguration config = Files.CONFIG.getFile();
+        final FileConfiguration config = Files.CONFIG.getFile();
 
-        boolean refreshEnabled = config.getBoolean("Settings.Refresh-Potion-Effects-On-World-Change");
+        final boolean refreshEnabled = config.getBoolean("Settings.Refresh-Potion-Effects-On-World-Change", false);
 
         if (refreshEnabled) this.crazyManager.updatePlayerEffects(player);
     }

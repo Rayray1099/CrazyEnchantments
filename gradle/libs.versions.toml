@@ -2,8 +2,6 @@
 # Minecraft
 minecraft = "1.21.5"
 
-kotlin = "2.1.20" # https://github.com/JetBrains/kotlin
-
 # Plugins
 placeholderapi = "2.11.6"        # https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI
 worldguard = "7.0.13"            # https://dev.bukkit.org/projects/worldguard/files
@@ -17,6 +15,7 @@ skyblock = "2025.1"              # https://bg-software.com/superiorskyblock/
 plotsquared = "7.5.2"           # https://intellectualsites.gitbook.io/plotsquared/api/api-documentation
 mcmmo = "2.1.227"                # https://repo.codemc.io/service/rest/repository/browse/maven-public/com/gmail/nossr50/mcMMO/mcMMO/
 kingdoms = "1.16.20.5"           # https://www.spigotmc.org/resources/kingdomsx.77670/
+bStats = "3.1.0" # https://github.com/Bastian/bStats
 
 ## Paper
 paperweight = "2.0.0-beta.17" # https://github.com/PaperMC/paperweight
@@ -51,9 +50,6 @@ vault = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vault" }
 # https://github.com/PaperMC/paperweight
 paperweight = { module = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gradle.plugin", version.ref = "paperweight" }
 
-# https://github.com/JetBrains/kotlin
-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-
 # https://github.com/GradleUp/shadow
 shadow = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadow" }
 
@@ -74,10 +70,12 @@ kingdoms = { module = "com.github.cryptomorin:kingdoms", version.ref = "kingdoms
 informative-annotations = { group = "com.intellectualsites.informative-annotations", name = "informative-annotations", version = "1.6" } #https://central.sonatype.com/artifact/com.intellectualsites.informative-annotations/informative-annotations
 paster = { group = "com.intellectualsites.paster", name = "Paster", version = "1.1.6" } #https://mvnrepository.com/artifact/com.intellectualsites.paster
 
+# https://github.com/Bastian/bStats
+metrics = { module = "org.bstats:bstats-bukkit", version.ref = "bStats" }
+
 [bundles]
 build = [
-    "shadow",
-    "kotlin"
+    "shadow"
 ]
 
 paper = [

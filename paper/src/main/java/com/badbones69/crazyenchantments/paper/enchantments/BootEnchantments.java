@@ -50,9 +50,10 @@ public class BootEnchantments implements Listener {
     public void onPlayerFly(PlayerToggleFlightEvent event) {
         if (!this.wingsManager.isWingsEnabled()) return;
 
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
         if (player.getEquipment().getBoots() == null) return;
+
         if (!this.enchantmentBookSettings.getEnchantments(player.getEquipment().getBoots()).containsKey(CEnchantments.WINGS.getEnchantment())) return;
 
         if (WingsUtils.checkRegion(player) || WingsUtils.isEnemiesNearby(player)) return;
@@ -61,6 +62,7 @@ public class BootEnchantments implements Listener {
             if (player.getAllowFlight()) {
                 event.setCancelled(true);
                 player.setFlying(true);
+
                 this.wingsManager.addFlyingPlayer(player);
             }
         } else {
@@ -72,8 +74,8 @@ public class BootEnchantments implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         if (event.getFrom() == event.getTo()) return;
 
-        Player player = event.getPlayer();
-        boolean isFlying = player.isFlying(); // TODO implement single method for all enchantment checks. #EnchantUtils
+        final Player player = event.getPlayer();
+        final boolean isFlying = player.isFlying(); // TODO implement single method for all enchantment checks. #EnchantUtils
 
         if (this.wingsManager.isWingsEnabled() && this.enchantmentBookSettings.getEnchantments(player.getEquipment().getBoots()).containsKey(CEnchantments.WINGS.getEnchantment())) {
             if (WingsUtils.checkRegion(player)) {
@@ -83,6 +85,7 @@ public class BootEnchantments implements Listener {
                     if (isFlying && WingsUtils.checkGameMode(player)) {
                         player.setFlying(false);
                         player.setAllowFlight(false);
+
                         this.wingsManager.removeFlyingPlayer(player);
                     }
                 }
@@ -90,6 +93,7 @@ public class BootEnchantments implements Listener {
                 if (isFlying && WingsUtils.checkGameMode(player)) {
                     player.setFlying(false);
                     player.setAllowFlight(false);
+
                     this.wingsManager.removeFlyingPlayer(player);
                 }
             }
@@ -100,7 +104,7 @@ public class BootEnchantments implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
         if (!this.wingsManager.isWingsEnabled()) return;
 
@@ -109,17 +113,19 @@ public class BootEnchantments implements Listener {
         if (WingsUtils.checkRegion(player) || WingsUtils.isEnemiesNearby(player)) return;
 
         player.setAllowFlight(true);
+
         this.wingsManager.addFlyingPlayer(player);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerLeave(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
         if (!this.wingsManager.isWingsEnabled() || !this.wingsManager.isFlyingPlayer(player)) return;
 
         player.setFlying(false);
         player.setAllowFlight(false);
+
         this.wingsManager.removeFlyingPlayer(player);
     }
 }

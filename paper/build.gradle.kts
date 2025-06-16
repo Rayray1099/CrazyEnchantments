@@ -17,6 +17,8 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.metrics)
+
     compileOnly(libs.informative.annotations)
 
     compileOnly(libs.vault) {
@@ -65,5 +67,13 @@ tasks {
         defaultCharacterEncoding = Charsets.UTF_8.name()
 
         minecraftVersion(libs.versions.minecraft.get())
+    }
+
+    shadowJar {
+        listOf(
+            "org.bstats"
+        ).forEach {
+            relocate(it, "libs.$it")
+        }
     }
 }

@@ -30,7 +30,7 @@ import java.util.Objects;
 
 public class TinkererMenu extends InventoryBuilder {
 
-    public TinkererMenu(Player player, int size, String title) {
+    public TinkererMenu(final Player player, final int size, final String title) {
         super(player, size, title);
     }
 
@@ -38,15 +38,14 @@ public class TinkererMenu extends InventoryBuilder {
 
     @Override
     public InventoryBuilder build() {
-        ItemStack button = new ItemBuilder()
-                .setMaterial(Material.RED_STAINED_GLASS_PANE)
-                        .setName(this.configuration.getString("Settings.TradeButton"))
+        final ItemStack button = new ItemBuilder().setMaterial(Material.RED_STAINED_GLASS_PANE)
+                .setName(this.configuration.getString("Settings.TradeButton", "&eClick to accept the trade"))
                 .setLore(this.configuration.getStringList("Settings.TradeButton-Lore")).build();
 
         getInventory().setItem(0, button);
         getInventory().setItem(8, button);
 
-        ItemStack divider = new ItemBuilder().setMaterial(Material.WHITE_STAINED_GLASS_PANE).setName(" ").build();
+        final ItemStack divider = new ItemBuilder().setMaterial(Material.WHITE_STAINED_GLASS_PANE).setName(" ").build();
 
         List.of(4, 13, 22, 31, 40, 49).forEach(slot -> getInventory().setItem(slot, divider));
 
@@ -66,7 +65,7 @@ public class TinkererMenu extends InventoryBuilder {
         public void onExperienceUse(PlayerInteractEvent event) {
             if (!(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
 
-            Player player = event.getPlayer();
+            final Player player = event.getPlayer();
 
             if (TinkererManager.useExperience(player, event, true, this.configuration)) return;
 
@@ -80,17 +79,17 @@ public class TinkererMenu extends InventoryBuilder {
         public void onInventoryClick(InventoryClickEvent event) {
             if (!(event.getInventory().getHolder() instanceof TinkererMenu holder)) return;
 
-            Player player = holder.getPlayer();
+            final Player player = holder.getPlayer();
 
             event.setCancelled(true);
 
             ItemStack current = event.getCurrentItem();
 
-            if (current == null || current.isEmpty() || !current.hasItemMeta()) return;
+            if (current == null || current.isEmpty() || !current.hasItemMeta()) return; //todo() item meta call unnecessary
 
             ItemStack button = new ItemBuilder()
                     .setMaterial(Material.RED_STAINED_GLASS_PANE)
-                    .setName(this.configuration.getString("Settings.TradeButton"))
+                    .setName(this.configuration.getString("Settings.TradeButton", "&eClick to accept the trade"))
                     .setLore(this.configuration.getStringList("Settings.TradeButton-Lore")).build();
 
             Inventory inventory = holder.getInventory();
@@ -106,7 +105,7 @@ public class TinkererMenu extends InventoryBuilder {
                     ItemStack reward = inventory.getItem(slot.getValue());
 
                     if (reward != null) {
-                        if (Currency.getCurrency(this.configuration.getString("Settings.Currency")) == Currency.VAULT) {
+                        if (Currency.getCurrency(this.configuration.getString("Settings.Currency", "Vault")) == Currency.VAULT) {
                             total = TinkererManager.getTotalXP(inventory.getItem(slot.getKey()), this.configuration);
                         } else {
                             bottomInventory.addItem(reward).values().forEach(item -> player.getWorld().dropItem(player.getLocation(), item));
@@ -121,7 +120,7 @@ public class TinkererMenu extends InventoryBuilder {
 
                 player.closeInventory();
 
-                if (total != 0) this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), "eco give " + player.getName() + " " + total);
+                if (total != 0) this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), "eco give " + player.getName() + " " + total); //todo() wtf? also folia support
 
                 if (toggle) player.sendMessage(Messages.TINKER_SOLD_MESSAGE.getMessage());
 
@@ -176,7 +175,7 @@ public class TinkererMenu extends InventoryBuilder {
             }
         }
 
-        private boolean isFirstEmpty(InventoryClickEvent event, Player player, ItemStack current, Inventory topInventory) {
+        private boolean isFirstEmpty(final InventoryClickEvent event, final Player player, final ItemStack current, final Inventory topInventory) {
             if (topInventory.firstEmpty() == -1) {
                 player.sendMessage(Messages.TINKER_INVENTORY_FULL.getMessage());
 
@@ -198,13 +197,14 @@ public class TinkererMenu extends InventoryBuilder {
         public void onInvClose(final InventoryCloseEvent event) {
             if (!(event.getInventory().getHolder() instanceof TinkererMenu holder)) return;
 
-            Player player = holder.getPlayer();
+            final Player player = holder.getPlayer();
+
+            //todo() use folia runnable from fusion
             player.getScheduler().execute(this.plugin, () -> {
+                final Inventory inventory = holder.getInventory();
 
-                Inventory inventory = holder.getInventory();
-
-                for (int slot : this.slots.keySet()) {
-                    ItemStack item = inventory.getItem(slot);
+                for (final int slot : this.slots.keySet()) {
+                    final ItemStack item = inventory.getItem(slot);
 
                     if (item == null || item.isEmpty()) continue;
 

@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public class BlackSmithManager {
 
@@ -121,25 +122,24 @@ public class BlackSmithManager {
         return maxEnchantments;
     }
 
-    private static ConfigurationSection getSection(FileConfiguration config) {
+    private static ConfigurationSection getSection(@NotNull final FileConfiguration config) {
         return config.getConfigurationSection("Settings.BlackSmith");
     }
 
-    private static void get(FileConfiguration config) {
+    private static void get(@NotNull final FileConfiguration config) {
         ConfigurationSection section = getSection(config);
 
         // If section is null, do nothing.
         if (section == null) return;
 
-        exitButton = new ItemBuilder()
-                .setMaterial(Material.BARRIER)
+        exitButton = new ItemBuilder().setMaterial(Material.BARRIER)
                 .setName(section.getString("Results.None", "&c&lNo Results."))
                 .setLore(section.getStringList("Results.Not-Found-Lore"))
                 .build();
 
-        inventoryName = ColorUtils.color(section.getString("GUIName"));
+        inventoryName = ColorUtils.color(section.getString("GUIName", "&8&lThe Black Smith"));
         itemCost = section.getString("Results.Found", "&c&lCost: &6&l%cost% XP");
-        currency = Currency.getCurrency(section.getString("Transaction.Currency", "XP_LEVEL"));
+        currency = Currency.getCurrency(section.getString("Transaction.Currency", "XP_Level"));
 
         bookUpgrade = section.getInt("Transaction.Costs.Book-Upgrade", 5);
         levelUp = section.getInt("Transaction.Costs.Power-Up", 5);

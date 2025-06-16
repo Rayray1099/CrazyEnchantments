@@ -26,13 +26,13 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +56,7 @@ public class AxeEnchantments implements Listener {
     private final EnchantmentBookSettings enchantmentBookSettings = this.starter.getEnchantmentBookSettings();
 
     @NotNull
-    private final CrazyManager crazyManager = this.starter.getCrazyManager();
+    private final CrazyManager crazyManager = this.plugin.getCrazyManager();
 
     // Plugin Support.
     @NotNull
@@ -66,18 +66,19 @@ public class AxeEnchantments implements Listener {
     public void onTreeFeller(BlockBreakEvent event) {
         if (!event.isDropItems() || EventUtils.isIgnoredEvent(event)) return;
 
-        Player player = event.getPlayer();
-        ItemStack currentItem = methods.getItemInHand(player);
+        final Player player = event.getPlayer();
+        final ItemStack currentItem = this.methods.getItemInHand(player);
 
-        Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(currentItem);
+        final Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(currentItem);
+
         if (!EnchantUtils.isMassBlockBreakActive(player, CEnchantments.TREEFELLER, enchantments)) return;
 
-        Set<Block> blockList = getTree(event.getBlock(), 5 * enchantments.get(CEnchantments.TREEFELLER.getEnchantment()));
-        boolean damage = FileManager.Files.CONFIG.getFile().getBoolean("Settings.EnchantmentOptions.TreeFeller-Full-Durability", true);
+        final Set<Block> blockList = getTree(event.getBlock(), 5 * enchantments.get(CEnchantments.TREEFELLER.getEnchantment()));
+        final boolean damage = FileManager.Files.CONFIG.getFile().getBoolean("Settings.EnchantmentOptions.TreeFeller-Full-Durability", true);
 
         if (!new MassBlockBreakEvent(player, blockList).callEvent()) return;
 
-        for (Block block : blockList) {
+        for (final Block block : blockList) {
             if (block == event.getBlock()) continue;
             if (this.methods.playerBreakBlock(player, block, currentItem, true)) continue;
             if (damage) this.methods.removeDurability(currentItem, player);
@@ -87,12 +88,14 @@ public class AxeEnchantments implements Listener {
 
     }
 
-    private Set<Block> getTree(Block startBlock, int maxBlocks) {
-        Set<Block> checkedBlocks = new HashSet<>(), tree = new HashSet<>();
-        Queue<Block> queue = new LinkedList<>();
+    private Set<Block> getTree(final Block startBlock, final int maxBlocks) {
+        final Set<Block> checkedBlocks = new HashSet<>(), tree = new HashSet<>();
+        final Queue<Block> queue = new LinkedList<>();
+
         queue.add(startBlock);
         checkedBlocks.add(startBlock);
-        int startX = startBlock.getX(), startZ = startBlock.getZ();
+
+        final int startX = startBlock.getX(), startZ = startBlock.getZ();
 
         while (!queue.isEmpty()) {
             Block currentBlock = queue.poll();
@@ -103,14 +106,15 @@ public class AxeEnchantments implements Listener {
                         if (tree.size() > maxBlocks) break;
                         if (x == 0 && y == 0 && z == 0) continue; // Skip initial block.
 
-                        Block neighbor = currentBlock.getRelative(x, y, z);
+                        final Block neighbor = currentBlock.getRelative(x, y, z);
                         if (neighbor.isEmpty() || checkedBlocks.contains(neighbor)) continue;
                         if (notInRange(startX, neighbor.getX()) || notInRange(startZ, neighbor.getZ())) continue;
 
-                        String neighborType = neighbor.getType().toString();
+                        final String neighborType = neighbor.getType().toString();
 
                         if ((neighborType.endsWith("LOG") || neighborType.endsWith("LEAVES"))) {
                             if (neighborType.endsWith("LOG")) tree.add(neighbor);
+
                             checkedBlocks.add(neighbor);
                             queue.add(neighbor);
                         }
@@ -121,7 +125,7 @@ public class AxeEnchantments implements Listener {
         return tree;
     }
 
-    private boolean notInRange(int startPos, int pos2) {
+    private boolean notInRange(final int startPos, final int pos2) {
         int range = 5;
         return pos2 > (startPos + range) || pos2 < (startPos - range);
     }
@@ -134,11 +138,11 @@ public class AxeEnchantments implements Listener {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
         if (!(event.getDamager() instanceof Player damager)) return;
 
-        ItemStack item = this.methods.getItemInHand(damager);
+        final ItemStack item = this.methods.getItemInHand(damager);
 
         if (entity.isDead()) return;
 
-        Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(item);
+        final Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(item);
 
         if (EnchantUtils.isEventActive(CEnchantments.BERSERK, damager, item, enchantments)) {
                 damager.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, (enchantments.get(CEnchantments.BERSERK.getEnchantment()) + 5) * 20, 1));
@@ -148,7 +152,7 @@ public class AxeEnchantments implements Listener {
         if (EnchantUtils.isEventActive(CEnchantments.BLESSED, damager, item, enchantments)) removeBadPotions(damager);
 
         if (EnchantUtils.isEventActive(CEnchantments.FEEDME, damager, item, enchantments)&& damager.getFoodLevel() < 20) {
-            int food = 2 * enchantments.get(CEnchantments.FEEDME.getEnchantment());
+            final int food = 2 * enchantments.get(CEnchantments.FEEDME.getEnchantment());
 
             if (damager.getFoodLevel() + food < 20) damager.setFoodLevel((int) (damager.getSaturation() + food));
 
@@ -165,10 +169,11 @@ public class AxeEnchantments implements Listener {
 
         if (EnchantUtils.isEventActive(CEnchantments.BATTLECRY, damager, item, enchantments)) {
             for (Entity nearbyEntity : damager.getNearbyEntities(3, 3, 3)) {
-                entity.getScheduler().run(plugin, task -> {
+                entity.getScheduler().run(this.plugin, task -> { //todo() fusion api
                     if (!this.pluginSupport.isFriendly(damager, nearbyEntity)) {
                         Vector vector = damager.getLocation().toVector().normalize().setY(.5);
                         Vector vector1 = nearbyEntity.getLocation().toVector().subtract(vector);
+
                         nearbyEntity.setVelocity(vector1);
                     }
                 }, null);
@@ -176,12 +181,13 @@ public class AxeEnchantments implements Listener {
         }
 
         if (EnchantUtils.isEventActive(CEnchantments.DEMONFORGED, damager, item, enchantments) && entity instanceof Player player) {
+            final EntityEquipment equipment = player.getEquipment();
 
-            ItemStack armorItem = switch (this.methods.percentPick(4, 0)) {
-                case 1 -> player.getEquipment().getHelmet();
-                case 2 -> player.getEquipment().getChestplate();
-                case 3 -> player.getEquipment().getLeggings();
-                default -> player.getEquipment().getBoots();
+            final ItemStack armorItem = switch (this.methods.percentPick(4, 0)) {
+                case 1 -> equipment.getHelmet();
+                case 2 -> equipment.getChestplate();
+                case 3 -> equipment.getLeggings();
+                default -> equipment.getBoots();
             };
 
             this.methods.removeDurability(armorItem, player);
@@ -190,14 +196,14 @@ public class AxeEnchantments implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
+        final Player player = event.getEntity();
 
         if (player.getKiller() == null) return;
 
         if (!this.pluginSupport.allowCombat(player.getLocation())) return;
 
-        Player damager = player.getKiller();
-        ItemStack item = this.methods.getItemInHand(damager);
+        final Player damager = player.getKiller();
+        final ItemStack item = this.methods.getItemInHand(damager);
 
         if (EnchantUtils.isEventActive(CEnchantments.DECAPITATION, damager, item, this.enchantmentBookSettings.getEnchantments(item))) {
             event.getDrops().add(new ItemBuilder().setMaterial(Material.PLAYER_HEAD).setPlayerName(player.getName()).build());
@@ -206,25 +212,26 @@ public class AxeEnchantments implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityDeath(EntityDeathEvent event) {
-        Player killer = event.getEntity().getKiller();
+        final Player killer = event.getEntity().getKiller();
 
         if (killer == null) return;
 
-        ItemStack item = this.methods.getItemInHand(killer);
-        Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(item);
-        Material headMat = EntityUtils.getHeadMaterial(event.getEntity());
+        final ItemStack item = this.methods.getItemInHand(killer);
+        final Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(item);
+        final  Material headMat = EntityUtils.getHeadMaterial(event.getEntity());
 
         if (headMat != null && !EventUtils.containsDrop(event, headMat)) {
-            double multiplier = this.crazyManager.getDecapitationHeadMap().getOrDefault(headMat, 0.0);
+            final double multiplier = this.crazyManager.getDecapitationHeadMap().getOrDefault(headMat, 0.0);
 
             if (multiplier != 0.0 && EnchantUtils.isEventActive(CEnchantments.DECAPITATION, killer, item, enchantments, multiplier)) {
-                ItemStack head = new ItemBuilder().setMaterial(headMat).build();
+                final ItemStack head = new ItemBuilder().setMaterial(headMat).build();
+
                 event.getDrops().add(head);
             }
         }
     }
 
-    private void removeBadPotions(Player player) {
+    private void removeBadPotions(final Player player) {
         List<PotionEffectType> bad = new ArrayList<>() {{
             add(PotionEffectType.BLINDNESS);
             add(PotionEffectType.NAUSEA);
