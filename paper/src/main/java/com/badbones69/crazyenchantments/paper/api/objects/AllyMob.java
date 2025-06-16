@@ -87,40 +87,43 @@ public class AllyMob {
     }
 
     public void attackEnemy(final LivingEntity enemy) {
-        this.ally.getScheduler().run(this.plugin, task -> { //todo() use fusion api
-            switch (this.ally.getType()) {
-                case WOLF -> {
-                    Wolf wolf = (Wolf) this.ally;
-                    wolf.setTarget(enemy);
-                }
+        new FoliaScheduler(this.plugin, null, this.ally) {
+            @Override
+            public void run() {
+                switch (ally.getType()) {
+                    case WOLF -> {
+                        Wolf wolf = (Wolf) ally;
+                        wolf.setTarget(enemy);
+                    }
 
-                case IRON_GOLEM -> {
-                    IronGolem iron = (IronGolem) this.ally;
-                    iron.setTarget(enemy);
-                }
+                    case IRON_GOLEM -> {
+                        IronGolem iron = (IronGolem) ally;
+                        iron.setTarget(enemy);
+                    }
 
-                case ZOMBIE -> {
-                    Zombie zom = (Zombie) this.ally;
-                    zom.setTarget(enemy);
-                }
+                    case ZOMBIE -> {
+                        Zombie zom = (Zombie) ally;
+                        zom.setTarget(enemy);
+                    }
 
-                case ENDERMITE -> {
-                    Endermite mite = (Endermite) this.ally;
-                    mite.setTarget(enemy);
-                }
+                    case ENDERMITE -> {
+                        Endermite mite = (Endermite) ally;
+                        mite.setTarget(enemy);
+                    }
 
-                case SILVERFISH -> {
-                    Silverfish sfish = (Silverfish) this.ally;
-                    sfish.setTarget(enemy);
-                }
+                    case SILVERFISH -> {
+                        Silverfish sfish = (Silverfish) ally;
+                        sfish.setTarget(enemy);
+                    }
 
-                case BEE -> {
-                    Bee bee = (Bee) this.ally;
-                    bee.setCannotEnterHiveTicks(Integer.MAX_VALUE);
-                    bee.setTarget(enemy);
+                    case BEE -> {
+                        Bee bee = (Bee) ally;
+                        bee.setCannotEnterHiveTicks(Integer.MAX_VALUE);
+                        bee.setTarget(enemy);
+                    }
                 }
             }
-        }, null);
+        }.runNextTick();
     }
     
     private void startSpawnTimer() {
