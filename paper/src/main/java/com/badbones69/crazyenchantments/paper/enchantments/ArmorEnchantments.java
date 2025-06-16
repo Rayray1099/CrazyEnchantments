@@ -155,7 +155,7 @@ public class ArmorEnchantments implements Listener {
      */
     @NotNull
     private Map<PotionEffectType, Integer> getTopPotionEffects(@NotNull final Map<CEnchantment, Integer> topEnchants) {
-        final Map<CEnchantments, HashMap<PotionEffectType, Integer>> enchantmentPotions = this.crazyManager.getEnchantmentPotions();
+        final Map<CEnchantments, Map<PotionEffectType, Integer>> enchantmentPotions = this.crazyManager.getEnchantmentPotions();
         final Map<PotionEffectType, Integer> topPotions = new HashMap<>();
 
         topEnchants.forEach((key, value) -> enchantmentPotions.entrySet()

@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class Methods {
@@ -451,8 +452,8 @@ public class Methods {
         return lightning;
     }
 
-    public void switchCurrency(@NotNull Player player, @NotNull Currency option, @NotNull String one, @NotNull String two, @NotNull String cost) {
-        HashMap<String, String> placeholders = new HashMap<>();
+    public void switchCurrency(@NotNull final Player player, @NotNull final Currency option, @NotNull final String one, @NotNull final String two, @NotNull final String cost) {
+        Map<String, String> placeholders = new HashMap<>();
 
         placeholders.put(one, cost);
         placeholders.put(two, cost);

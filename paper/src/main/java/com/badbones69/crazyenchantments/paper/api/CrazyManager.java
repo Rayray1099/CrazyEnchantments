@@ -677,14 +677,14 @@ public class CrazyManager {
 
         items.add(includedItem);
 
-        Map<CEnchantments, HashMap<PotionEffectType, Integer>> armorEffects = getEnchantmentPotions();
+        Map<CEnchantments, Map<PotionEffectType, Integer>> armorEffects = getEnchantmentPotions();
 
         for (ItemStack armor : items) {
             if (armor == null || armor.isSimilar(excludedItem)) continue;
 
             Map<CEnchantment, Integer> ench = this.enchantmentBookSettings.getEnchantments(armor);
 
-            for (Entry<CEnchantments, HashMap<PotionEffectType, Integer>> enchantments : armorEffects.entrySet()) {
+            for (Entry<CEnchantments, Map<PotionEffectType, Integer>> enchantments : armorEffects.entrySet()) {
                 if (!ench.containsKey(enchantments.getKey().getEnchantment())) continue;
 
                 int level = ench.get(enchantments.getKey().getEnchantment());
@@ -714,8 +714,8 @@ public class CrazyManager {
      *
      * @return All the effects for each enchantment that needs it.
      */
-    public Map<CEnchantments, HashMap<PotionEffectType, Integer>> getEnchantmentPotions() {
-        Map<CEnchantments, HashMap<PotionEffectType, Integer>> enchants = new HashMap<>();
+    public Map<CEnchantments, Map<PotionEffectType, Integer>> getEnchantmentPotions() {
+        Map<CEnchantments, Map<PotionEffectType, Integer>> enchants = new HashMap<>();
 
         enchants.put(CEnchantments.GLOWING, new HashMap<>());
         enchants.get(CEnchantments.GLOWING).put(PotionEffectType.NIGHT_VISION, -1);
