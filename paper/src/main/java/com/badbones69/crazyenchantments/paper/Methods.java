@@ -9,7 +9,7 @@ import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EventUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
-import com.badbones69.crazyenchantments.paper.support.misc.OraxenSupport;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -24,9 +24,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +46,6 @@ public class Methods {
     // Plugin Support.
     @NotNull
     private final PluginSupport pluginSupport = this.starter.getPluginSupport();
-
-    @NotNull
-    private final OraxenSupport oraxenSupport = this.starter.getOraxenSupport();
 
     public EnchantmentType getFromName(String name) {
         for (EnchantmentType enchantmentType : MenuManager.getEnchantmentTypes()) {
@@ -289,66 +284,67 @@ public class Methods {
     }
 
     public int getMaxDurability(@NotNull ItemStack item) {
-        if (!PluginSupport.SupportedPlugins.ORAXEN.isPluginLoaded()) return item.getType().getMaxDurability();
+        int durability = item.getType().getMaxDurability();
 
-        return this.oraxenSupport.getMaxDurability(item);
+        if (item.hasData(DataComponentTypes.MAX_DAMAGE)) {
+            @Nullable final Integer damage = item.getData(DataComponentTypes.MAX_DAMAGE);
+
+            if (damage != null) {
+                durability = damage;
+            }
+        }
+
+        return durability;
     }
 
     public int getDurability(@NotNull ItemStack item) {
-        if (!PluginSupport.SupportedPlugins.ORAXEN.isPluginLoaded()) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta instanceof Damageable) return ((Damageable) item.getItemMeta()).getDamage();
-            return 0;
+        int durability = 0;
+
+        if (item.hasData(DataComponentTypes.DAMAGE)) {
+            @Nullable final Integer damage = item.getData(DataComponentTypes.DAMAGE);
+
+            if (damage != null) {
+                durability = damage;
+            }
         }
 
-        return this.oraxenSupport.getDamage(item);
+        return durability;
     }
 
     public void setDurability(@NotNull ItemStack item, int newDamage) {
         newDamage = Math.max(newDamage, 0);
 
-        if (!PluginSupport.SupportedPlugins.ORAXEN.isPluginLoaded()) {
-            ItemMeta meta = item.getItemMeta();
-
-            if (meta instanceof Damageable damageable) {
-                damageable.setDamage(newDamage);
-                item.setItemMeta(damageable);
-            }
-
-            return;
-        }
-
-        this.oraxenSupport.setDamage(item, newDamage);
+        item.setData(DataComponentTypes.DAMAGE, newDamage);
     }
 
     public void removeDurability(@NotNull ItemStack item, @NotNull Player player) {
-        if (getMaxDurability(item) == 0) return;
+        final int maxDurability = getMaxDurability(item);
+        final int durability = getDurability(item);
 
-        if (item.hasItemMeta()) {
+        if (maxDurability == 0 || item.hasData(DataComponentTypes.UNBREAKABLE)) return;
 
-            ItemMeta meta = item.getItemMeta();
+        if (item.hasData(DataComponentTypes.ENCHANTMENTS)) {
+            final boolean hasUnbreaking = item.getEnchantments().containsKey(Enchantment.UNBREAKING);
 
-            if (meta.isUnbreakable()) return;
+            if (hasUnbreaking) {
+                final int level = item.getEnchantmentLevel(Enchantment.UNBREAKING);
 
-            if (meta.hasEnchants()) {
-                if (meta.hasEnchant(Enchantment.UNBREAKING)) {
-                    if (randomPicker(1, 1 + item.getEnchantmentLevel(Enchantment.UNBREAKING))) {
-                        if (getDurability(item) > getMaxDurability(item)) {
-                            player.getInventory().remove(item);
-                        } else {
-                            setDurability(item, getDurability(item) + 1);
-                        }
+                if (randomPicker(1, 1 + level)) {
+                    if (durability > maxDurability) {
+                        player.getInventory().remove(item);
+                    } else {
+                        setDurability(item, durability + 1);
                     }
-
-                    return;
                 }
+
+                return;
             }
         }
 
-        if (getDurability(item) > getMaxDurability(item)) {
+        if (durability > maxDurability) {
             player.getInventory().remove(item);
         } else {
-            setDurability(item, getDurability(item) + 1);
+            setDurability(item, durability + 1);
         }
     }
 
@@ -373,7 +369,6 @@ public class Methods {
     }
 
     private void spawnExplodeParticles(@NotNull World world, @NotNull Location location) {
-
         world.spawnParticle(Particle.FLAME, location, 200);
         world.spawnParticle(Particle.CLOUD, location, 30, .4F, .5F, .4F);
         world.spawnParticle(Particle.EXPLOSION, location, 2);
