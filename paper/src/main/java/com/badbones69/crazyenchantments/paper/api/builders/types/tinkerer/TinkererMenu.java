@@ -7,6 +7,7 @@ import com.badbones69.crazyenchantments.paper.api.economy.Currency;
 import com.badbones69.crazyenchantments.paper.api.economy.CurrencyAPI;
 import com.badbones69.crazyenchantments.paper.api.enums.Dust;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
+import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.objects.CEBook;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
@@ -28,7 +29,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class TinkererMenu extends InventoryBuilder {
 
@@ -42,7 +42,8 @@ public class TinkererMenu extends InventoryBuilder {
     public InventoryBuilder build() {
         final ItemStack button = new ItemBuilder().setMaterial(Material.RED_STAINED_GLASS_PANE)
                 .setName(this.configuration.getString("Settings.TradeButton", "&eClick to accept the trade"))
-                .setLore(this.configuration.getStringList("Settings.TradeButton-Lore")).build();
+                .setLore(this.configuration.getStringList("Settings.TradeButton-Lore"))
+                .addKey(DataKeys.trade_button.getNamespacedKey(), "").build();
 
         getInventory().setItem(0, button);
         getInventory().setItem(8, button);
@@ -89,19 +90,14 @@ public class TinkererMenu extends InventoryBuilder {
 
             ItemStack current = event.getCurrentItem();
 
-            if (current == null || current.isEmpty() || !current.hasItemMeta()) return; //todo() item meta call unnecessary
-
-            ItemStack button = new ItemBuilder()
-                    .setMaterial(Material.RED_STAINED_GLASS_PANE)
-                    .setName(this.configuration.getString("Settings.TradeButton", "&eClick to accept the trade"))
-                    .setLore(this.configuration.getStringList("Settings.TradeButton-Lore")).build();
+            if (current == null || current.isEmpty()) return; //todo() item meta call unnecessary
 
             Inventory inventory = holder.getInventory();
             Inventory topInventory = player.getOpenInventory().getTopInventory();
             Inventory bottomInventory = player.getOpenInventory().getBottomInventory();
 
             // Recycling things.
-            if (Objects.equals(current, button)) {
+            if (current.getPersistentDataContainer().has(DataKeys.trade_button.getNamespacedKey())) {
                 int total = 0;
                 boolean toggle = false;
 

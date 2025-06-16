@@ -24,6 +24,7 @@ public enum DataKeys {
     gkit_type("gkit", PersistentDataType.STRING),
     random_number("random_number", PersistentDataType.STRING),
 
+    trade_button("trade_button", PersistentDataType.STRING),
     back_left("back_left", PersistentDataType.STRING),
     back_right("back_right", PersistentDataType.STRING);
 
