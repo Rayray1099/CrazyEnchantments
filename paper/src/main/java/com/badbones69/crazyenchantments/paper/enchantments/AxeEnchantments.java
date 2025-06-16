@@ -169,7 +169,7 @@ public class AxeEnchantments implements Listener {
             entity.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, (enchantments.get(CEnchantments.DIZZY.getEnchantment()) + 9) * 20, 0));
 
         if (EnchantUtils.isEventActive(CEnchantments.BATTLECRY, damager, item, enchantments)) {
-            for (Entity nearbyEntity : damager.getNearbyEntities(3, 3, 3)) {
+            for (final Entity nearbyEntity : damager.getNearbyEntities(3, 3, 3)) {
                 new FoliaScheduler(this.plugin, null, entity) {
                     @Override
                     public void run() {

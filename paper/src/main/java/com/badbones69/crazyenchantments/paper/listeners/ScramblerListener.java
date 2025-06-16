@@ -84,7 +84,7 @@ public class ScramblerListener implements Listener {
     }
 
     private void startScrambler(final Player player, final Inventory inventory, final ItemStack book) {
-        this.roll.put(player, new FoliaScheduler(this.plugin, null, player) { //todo() use fusion api
+        this.roll.put(player, new FoliaScheduler(this.plugin, null, player) {
             int time = 1;
             int full = 0;
             int open = 0;

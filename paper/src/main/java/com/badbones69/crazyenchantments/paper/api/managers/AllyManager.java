@@ -5,13 +5,13 @@ import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.objects.AllyMob;
 import com.badbones69.crazyenchantments.paper.api.objects.AllyMob.AllyType;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -74,9 +74,14 @@ public class AllyManager {
     public void forceRemoveAllies() {
         if (!this.allyMobs.isEmpty()) {
             for (final AllyMob ally : this.allyMobs) {
-                final LivingEntity allyLE = ally.getAlly();
+                final LivingEntity entity = ally.getAlly();
 
-                allyLE.getScheduler().run(plugin, task -> allyLE.remove(), null);
+                new FoliaScheduler(this.plugin, null, entity) {
+                    @Override
+                    public void run() {
+                        entity.remove();;
+                    }
+                }.runNextTick();
             }
 
             this.allyMobs.clear();
@@ -86,21 +91,30 @@ public class AllyManager {
     
     public void forceRemoveAllies(final Player owner) {
         for (final AllyMob ally : this.allyOwners.getOrDefault(owner.getUniqueId(), new ArrayList<>())) {
-            final LivingEntity allyLE = ally.getAlly();
+            final LivingEntity entity = ally.getAlly();
 
-            allyLE.getScheduler().run(plugin, task -> { //todo() use folia runnable from fusion
-                allyLE.remove();
-                this.allyMobs.remove(ally);
-            }, null);
+            new FoliaScheduler(this.plugin, null, entity) {
+                @Override
+                public void run() {
+                    entity.remove();
+
+                    allyMobs.remove(ally);
+                }
+            }.runNextTick();
         }
 
         this.allyOwners.remove(owner.getUniqueId());
     }
     
     public void setEnemy(final Player owner, final Entity enemy) {
-        //todo() folia runnable
-        this.allyOwners.getOrDefault(owner.getUniqueId(), new ArrayList<>()).forEach(ally ->
-            ally.getAlly().getScheduler().run(plugin, task -> ally.attackEnemy((LivingEntity) enemy), null));
+        this.allyOwners.getOrDefault(owner.getUniqueId(), new ArrayList<>()).forEach(ally -> {
+            new FoliaScheduler(this.plugin, null, ally.getAlly()) {
+                @Override
+                public void run() {
+                    ally.attackEnemy((LivingEntity) enemy);
+                }
+            }.runNextTick();
+        });
     }
     
     public Map<AllyType, String> getAllyTypeNameCache() {

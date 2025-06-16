@@ -32,6 +32,8 @@ import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCry
 import com.badbones69.crazyenchantments.paper.support.CropManager;
 import com.badbones69.crazyenchantments.paper.support.interfaces.CropManagerVersion;
 import com.google.gson.Gson;
+import com.ryderbelserion.fusion.paper.api.enums.Scheduler;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
@@ -163,11 +165,12 @@ public class CrazyManager {
 
             if (playerHealthPatch) player.getAttribute(genericAttribute).setBaseValue(baseValue);
 
-            //todo() folia runnable from fusion
-            // Loop through all players & back them up.
-            this.plugin.getServer().getAsyncScheduler().runAtFixedRate(this.plugin, task ->
-                    getCEPlayers().forEach(name ->
-                            backupCEPlayer(name.getPlayer())), 5, 5, TimeUnit.MINUTES);
+            new FoliaScheduler(this.plugin, Scheduler.global_scheduler, TimeUnit.MINUTES) {
+                @Override
+                public void run() {
+                    getCEPlayers().forEach(player -> backupCEPlayer(player.getPlayer()));
+                }
+            }.runAtFixedRate(5, 5);
         });
 
         // Invalidate cached enchants.

@@ -276,13 +276,24 @@ public class ArmorEnchantments implements Listener {
 
             if (player.getHealth() <= 8 && EnchantUtils.isEventActive(CEnchantments.ROCKET, player, armor, enchants)) {
                 // Anti cheat support here with AAC or any others.
-                player.getScheduler().runDelayed(this.plugin, playerTask -> player.setVelocity(player.getLocation().toVector().subtract(damager.getLocation().toVector()).normalize().setY(1)), null, 1);
+                new FoliaScheduler(this.plugin, null, player) {
+                    @Override
+                    public void run() {
+                        player.setVelocity(player.getLocation().toVector().subtract(damager.getLocation().toVector()).normalize().setY(1));
+                    }
+                }.runDelayed(1);
+
                 this.fallenPlayers.add(player.getUniqueId());
 
                 //todo() is this EXPLOSION_HUGE?
                 player.getWorld().spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
 
-                player.getScheduler().runDelayed(this.plugin, playerTask -> fallenPlayers.remove(player.getUniqueId()), null, 8 * 20); //todo() folia scheduler from fusion
+                new FoliaScheduler(this.plugin, null, player) {
+                    @Override
+                    public void run() {
+                        fallenPlayers.remove(player.getUniqueId());
+                    }
+                }.runDelayed(8 * 20);
             }
 
             if (player.getHealth() > 0 && EnchantUtils.isEventActive(CEnchantments.ENLIGHTENED, player, armor, enchants)) {

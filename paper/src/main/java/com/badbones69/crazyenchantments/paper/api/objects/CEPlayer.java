@@ -289,9 +289,14 @@ public class CEPlayer {
         if (this.onCooldown.contains(enchant)) return true;
 
         this.onCooldown.add(enchant);
+
         // Limit players to using each enchant only once per second.
-        //todo() folia support
-        this.server.getAsyncScheduler().runDelayed(this.plugin, (task) -> this.onCooldown.remove(enchant), delay * 50L, TimeUnit.MILLISECONDS);
+        new FoliaScheduler(this.plugin, Scheduler.async_scheduler, TimeUnit.MILLISECONDS) {
+            @Override
+            public void run() {
+                onCooldown.remove(enchant);
+            }
+        }.runDelayed(delay * 50L);
 
         return false;
     }
