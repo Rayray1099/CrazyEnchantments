@@ -17,13 +17,20 @@ val versions = listOf(
     minecraft
 )
 
+val buildNumber: String? = System.getenv("BUILD_NUMBER")
+
 rootProject.version = version()
 rootProject.description = "Adds over 80 unique enchantments to your server and more!"
 rootProject.group = "com.badbones69.crazyenchantments"
 
 fun version(): String {
     if (isSnapshot) {
-        return "${libs.versions.minecraft.get()}-$commitHash"
+        return "$minecraft-$commitHash"
+    }
+
+
+    if (buildNumber != null) {
+        return "$minecraft-$buildNumber"
     }
 
     return "2.5.2"
