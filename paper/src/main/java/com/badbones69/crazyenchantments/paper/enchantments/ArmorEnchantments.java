@@ -17,6 +17,7 @@ import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBo
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
 import com.badbones69.crazyenchantments.paper.tasks.processors.ArmorProcessor;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.Location;
@@ -94,7 +95,12 @@ public class ArmorEnchantments implements Listener {
 
         final ItemStack air = ItemType.AIR.createItemStack(1);
 
-        player.getScheduler().runDelayed(this.plugin, playerTask -> updateEffects(player, air, air), null, 10); //todo() fusion api
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                updateEffects(player, air, air);
+            }
+        }.runDelayed(10);
     }
 
     @EventHandler

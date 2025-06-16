@@ -9,6 +9,7 @@ import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EventUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -270,7 +271,12 @@ public class Methods {
 
         this.plugin.getFireworkDamageListener().addFirework(firework);
 
-        this.plugin.getServer().getRegionScheduler().runDelayed(this.plugin, loc, task -> firework.detonate(), 2); //todo() fusion api
+        new FoliaScheduler(this.plugin, loc) {
+            @Override
+            public void run() {
+                firework.detonate();
+            }
+        }.runDelayed(2);
     }
 
     public Enchantment getEnchantment(@NotNull String enchantmentName) {

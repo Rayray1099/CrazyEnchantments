@@ -3,7 +3,7 @@ package com.badbones69.crazyenchantments.paper.api.objects;
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
 import com.badbones69.crazyenchantments.paper.api.managers.AllyManager;
-import com.badbones69.crazyenchantments.paper.scheduler.FoliaRunnable;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -125,13 +125,13 @@ public class AllyMob {
     
     private void startSpawnTimer() {
         if (this.ally != null) {
-            this.runnable = new FoliaRunnable(this.ally.getScheduler(), null) { //todo() use fusion api
+            this.runnable = new FoliaScheduler(this.plugin, null, this.ally) {
                 @Override
                 public void run() {
                     allyManager.removeAllyMob(instance);
                     ally.remove();
                 }
-            }.runDelayed(this.plugin, this.spawnTime * 20);
+            }.runDelayed(this.spawnTime * 20);
         }
     }
     

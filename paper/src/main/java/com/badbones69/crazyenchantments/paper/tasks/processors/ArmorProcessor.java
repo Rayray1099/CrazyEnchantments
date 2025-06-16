@@ -8,6 +8,7 @@ import com.badbones69.crazyenchantments.paper.api.objects.CEnchantment;
 import com.badbones69.crazyenchantments.paper.api.utils.EnchantUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import org.bukkit.Server;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
@@ -83,84 +84,109 @@ public class ArmorProcessor extends PoolProcessor {
 
         int radius = 4 + enchantments.get(CEnchantments.COMMANDER.getEnchantment());
 
-        player.getScheduler().run(this.plugin, playerTask -> { //todo() fusion api
-            if (EnchantUtils.normalEnchantEvent(CEnchantments.COMMANDER, player, armor)) {
-                final PotionEffect fastDigging = new PotionEffect(PotionEffectType.HASTE, 3 * 20, 1);
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                if (EnchantUtils.normalEnchantEvent(CEnchantments.COMMANDER, player, armor)) {
+                    final PotionEffect fastDigging = new PotionEffect(PotionEffectType.HASTE, 3 * 20, 1);
 
-                for (final Entity e : player.getNearbyEntities(radius, radius, radius)) {
-                    e.getScheduler().run(plugin, task -> { //todo() use fusion api
-                        if (e instanceof Player otherPlayer && this.pluginSupport.isFriendly(player, otherPlayer)) {
-                            otherPlayer.addPotionEffect(fastDigging);
-                        }
-                    }, null);
+                    for (final Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+                        new FoliaScheduler(plugin, null, entity) {
+                            @Override
+                            public void run() {
+                                if (entity instanceof Player otherPlayer && pluginSupport.isFriendly(player, otherPlayer)) {
+                                    otherPlayer.addPotionEffect(fastDigging);
+                                }
+                            }
+                        }.runNextTick();
+                    }
                 }
             }
-        }, null);
+        }.runNextTick();
     }
 
     private void checkAngel(final ItemStack armor, final Player player, final Map<CEnchantment, Integer> enchantments, final int radius) {
         if (!EnchantUtils.isMoveEventActive(CEnchantments.ANGEL, player, enchantments)) return;
 
-        player.getScheduler().run(this.plugin, playerTask -> { //todo() fusion api\
-            if (!EnchantUtils.normalEnchantEvent(CEnchantments.ANGEL, player, armor)) return;
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                if (!EnchantUtils.normalEnchantEvent(CEnchantments.ANGEL, player, armor)) return;
 
-            final List<Player> players = new ArrayList<>();
+                final List<Player> players = new ArrayList<>();
 
-            for (final Entity entity : player.getNearbyEntities(radius, radius, radius)) { //todo() fusion api
-                entity.getScheduler().run(plugin, (task) -> {
-                    if (entity instanceof Player otherPlayer && this.pluginSupport.isFriendly(player, otherPlayer)) {
-                        players.add(otherPlayer);
-                    }
-                }, null);
+                for (final Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+                    new FoliaScheduler(plugin, null, entity) {
+                        @Override
+                        public void run() {
+                            if (entity instanceof Player otherPlayer && pluginSupport.isFriendly(player, otherPlayer)) {
+                                players.add(otherPlayer);
+                            }
+                        }
+                    }.runNextTick();
+                }
+
+                if (players.isEmpty()) return;
+
+                final PotionEffect regeneration = new PotionEffect(PotionEffectType.REGENERATION, 3 * 20, 0);
+
+                for (final Player target : players) {
+                    new FoliaScheduler(plugin, null, target) {
+                        @Override
+                        public void run() {
+                            target.addPotionEffect(regeneration);
+                        }
+                    }.runNextTick();
+                }
             }
-
-
-            if (players.isEmpty()) return;
-
-            final PotionEffect regeneration = new PotionEffect(PotionEffectType.REGENERATION, 3 * 20, 0);
-
-            for (Player p : players) {
-                p.getScheduler().run(plugin, task -> p.addPotionEffect(regeneration), null); //todo() fusion api
-            }
-        }, null);
+        }.runNextTick();
     }
 
     private void checkImplants(final ItemStack armor, final Player player, final Map<CEnchantment, Integer> enchantments) {
         if (!EnchantUtils.isMoveEventActive(CEnchantments.IMPLANTS, player, enchantments)) return;
 
-        player.getScheduler().run(this.plugin, playerTask -> { //todo() fusion api
-            if (EnchantUtils.normalEnchantEvent(CEnchantments.IMPLANTS, player, armor)) {
-                player.setFoodLevel(Math.min(20, player.getFoodLevel() + enchantments.get(CEnchantments.IMPLANTS.getEnchantment())));
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                if (EnchantUtils.normalEnchantEvent(CEnchantments.IMPLANTS, player, armor)) {
+                    player.setFoodLevel(Math.min(20, player.getFoodLevel() + enchantments.get(CEnchantments.IMPLANTS.getEnchantment())));
+                }
             }
-        }, null);
+        }.runNextTick();
     }
 
     private void checkNursery(final ItemStack armor, final Player player, final Map<CEnchantment, Integer> enchantments, final int heal, final double maxHealth) {
         if (!EnchantUtils.isMoveEventActive(CEnchantments.NURSERY, player, enchantments)) return;
 
-        player.getScheduler().run(this.plugin, playerTask -> { //todo() fusion api
-            if (EnchantUtils.normalEnchantEvent(CEnchantments.NURSERY, player, armor)) {
-                if (player.getHealth() + heal <= maxHealth) player.setHealth(player.getHealth() + heal);
-                if (player.getHealth() + heal >= maxHealth) player.setHealth(maxHealth);
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                if (EnchantUtils.normalEnchantEvent(CEnchantments.NURSERY, player, armor)) {
+                    if (player.getHealth() + heal <= maxHealth) player.setHealth(player.getHealth() + heal);
+                    if (player.getHealth() + heal >= maxHealth) player.setHealth(maxHealth);
+                }
             }
-        }, null);
+        }.runNextTick();
     }
 
     private void useHellForge(final Player player, final ItemStack item, final Map<CEnchantment, Integer> enchantments) {
         if (!EnchantUtils.isMoveEventActive(CEnchantments.HELLFORGED, player, enchantments)) return;
 
-        player.getScheduler().run(this.plugin, playerTask -> { //todo() fusion api
-            if (!EnchantUtils.normalEnchantEvent(CEnchantments.HELLFORGED, player, item)) return;
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                if (!EnchantUtils.normalEnchantEvent(CEnchantments.HELLFORGED, player, item)) return;
 
-            final int armorDurability = this.methods.getDurability(item);
+                final int armorDurability = methods.getDurability(item);
 
-            if (armorDurability <= 0) return;
+                if (armorDurability <= 0) return;
 
-            int finalArmorDurability = armorDurability;
+                int finalArmorDurability = armorDurability;
 
-            finalArmorDurability -= enchantments.get(CEnchantments.HELLFORGED.getEnchantment());
+                finalArmorDurability -= enchantments.get(CEnchantments.HELLFORGED.getEnchantment());
 
-            this.methods.setDurability(item, finalArmorDurability);
-        }, null);
+                methods.setDurability(item, finalArmorDurability);
+            }
+        }.runNextTick();
     }
 }

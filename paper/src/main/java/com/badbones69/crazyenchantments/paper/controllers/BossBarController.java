@@ -2,6 +2,7 @@ package com.badbones69.crazyenchantments.paper.controllers;
 
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
@@ -47,8 +48,12 @@ public class BossBarController { //todo() replace with adventure api
 
         player.showBossBar(bossBar);
 
-        player.getScheduler().runDelayed(this.plugin, playerTask -> removeBossBar(player), null, 600L); //todo() fusion folia scheduler
-
+        new FoliaScheduler(this.plugin, null, player) {
+            @Override
+            public void run() {
+                removeBossBar(player);
+            }
+        }.runDelayed(600L);
     }
 
     /**

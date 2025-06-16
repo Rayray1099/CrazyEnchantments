@@ -9,7 +9,7 @@ import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.objects.items.ScramblerData;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
-import com.badbones69.crazyenchantments.paper.scheduler.FoliaRunnable;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.Material;
@@ -84,7 +84,7 @@ public class ScramblerListener implements Listener {
     }
 
     private void startScrambler(final Player player, final Inventory inventory, final ItemStack book) {
-        this.roll.put(player, new FoliaRunnable(player.getScheduler(), null) { //todo() use fusion api
+        this.roll.put(player, new FoliaScheduler(this.plugin, null, player) { //todo() use fusion api
             int time = 1;
             int full = 0;
             int open = 0;
@@ -146,7 +146,7 @@ public class ScramblerListener implements Listener {
                     }
                 }
             }
-        }.runAtFixedRate(this.plugin, 1, 1));
+        }.runAtFixedRate(1, 1));
     }
 
     private List<Integer> slowSpin() {
