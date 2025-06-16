@@ -6,7 +6,7 @@ import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import com.badbones69.crazyenchantments.paper.api.managers.WingsManager;
 import com.badbones69.crazyenchantments.paper.api.utils.WingsUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
-import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,16 +35,21 @@ public class BootEnchantments implements Listener {
     private final EnchantmentBookSettings enchantmentBookSettings = this.starter.getEnchantmentBookSettings();
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onPlayerEquip(PlayerArmorChangeEvent event) {
+    public void onPlayerEquip(EntityEquipmentChangedEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+
         if (!this.wingsManager.isWingsEnabled()) return;
 
-        Player player = event.getPlayer();
+        event.getEquipmentChanges().forEach((slot, action) -> {
+            final ItemStack newItem = action.newItem();
+            final ItemStack oldItem = action.oldItem();
 
-        // Check the new armor piece.
-        WingsUtils.checkArmor(event.getNewItem(), true, null, player);
+            // Check the new armor piece.
+            WingsUtils.checkArmor(newItem, true, null, player);
 
-        // Check the old armor piece.
-        WingsUtils.checkArmor(null, false, event.getOldItem(), player);
+            // Check the old armor piece.
+            WingsUtils.checkArmor(null, false, oldItem, player);
+        });
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

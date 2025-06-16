@@ -17,7 +17,8 @@ import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBo
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
 import com.badbones69.crazyenchantments.paper.tasks.processors.ArmorProcessor;
-import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -93,23 +94,28 @@ public class ArmorEnchantments implements Listener {
 
         final ItemStack air = ItemType.AIR.createItemStack(1);
 
-        player.getScheduler().runDelayed(this.plugin, playerTask -> newUpdateEffects(player, air, air), null, 10); //todo() fusion api
+        player.getScheduler().runDelayed(this.plugin, playerTask -> updateEffects(player, air, air), null, 10); //todo() fusion api
     }
 
     @EventHandler
-    public void onEquip(PlayerArmorChangeEvent event) {
+    public void onEquip(EntityEquipmentChangedEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+
         final NamespacedKey key = DataKeys.enchantments.getNamespacedKey();
-        final Player player = event.getPlayer();
-        final ItemStack newItem = event.getNewItem();
-        final ItemStack oldItem = event.getOldItem();
 
-        // Return if no enchants would effect the player with the change.
-        if (!newItem.getPersistentDataContainer().has(key) && oldItem.getPersistentDataContainer().has(key)) return; //todo() make sure this still does what it's suppose to do?
+        event.getEquipmentChanges().forEach((slot, action) -> {
+            final ItemStack newItem = action.newItem();
+            final ItemStack oldItem = action.oldItem();
 
-        // Added to prevent armor change event being called on damage.
-        if (Objects.equals(newItem.getPersistentDataContainer().get(key, PersistentDataType.STRING), oldItem.getPersistentDataContainer().get(key, PersistentDataType.STRING))) return;
+            final PersistentDataContainerView newView = newItem.getPersistentDataContainer();
+            final PersistentDataContainerView oldView = oldItem.getPersistentDataContainer();
 
-        newUpdateEffects(player, newItem, oldItem);
+            if (!newView.has(key) && oldView.has(key)) return;
+
+            if (Objects.equals(newView.get(key, PersistentDataType.STRING), oldView.get(key, PersistentDataType.STRING))) return;
+
+            updateEffects(player, newItem, oldItem);
+        });
     }
 
     /**
@@ -120,8 +126,8 @@ public class ArmorEnchantments implements Listener {
      * @param newItem The new item equipped.
      * @param oldItem The item that had previously been equipped.
      */
-    private void newUpdateEffects(@NotNull final Player player, @NotNull final ItemStack newItem, @NotNull final ItemStack oldItem) {
-        final Map<CEnchantment, Integer> topEnchants = currentEnchantsOnPlayerAdded(player, newItem);
+    private void updateEffects(@NotNull final Player player, @NotNull final ItemStack newItem, @NotNull final ItemStack oldItem) {
+        final Map<CEnchantment, Integer> topEnchants = getCurrentEnchants(player, newItem);
 
         // Remove all effects that they no longer should have from the armor.
         if (!oldItem.isEmpty()) {
@@ -174,8 +180,8 @@ public class ArmorEnchantments implements Listener {
      * @return Returns a map of all current active enchants on the specified player.
      */
     @NotNull
-    private Map<CEnchantment, Integer> currentEnchantsOnPlayerAdded(@NotNull Player player, @NotNull ItemStack newItem) {
-        Map<CEnchantment, Integer> toAdd = getTopEnchantsOnPlayer(player);
+    private Map<CEnchantment, Integer> getCurrentEnchants(@NotNull Player player, @NotNull ItemStack newItem) {
+        Map<CEnchantment, Integer> toAdd = getUpperEnchants(player);
 
         if (!newItem.isEmpty()) {
             this.enchantmentBookSettings.getEnchantments(newItem).entrySet().stream()
@@ -193,7 +199,7 @@ public class ArmorEnchantments implements Listener {
      * @return A list of {@link CEnchantments}'s on the player.
      */
     @NotNull
-    private Map<CEnchantment, Integer> getTopEnchantsOnPlayer(@NotNull Player player) {
+    private Map<CEnchantment, Integer> getUpperEnchants(@NotNull Player player) {
         Map<CEnchantment, Integer> topEnchants = new HashMap<>();
 
         Arrays.stream(player.getEquipment().getArmorContents())
