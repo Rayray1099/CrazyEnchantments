@@ -5,8 +5,11 @@ import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import com.badbones69.crazyenchantments.paper.api.objects.gkitz.GKitz;
 import com.badbones69.crazyenchantments.paper.api.objects.gkitz.GkitCoolDown;
+import com.ryderbelserion.fusion.paper.api.enums.Scheduler;
+import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Server;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -94,9 +97,17 @@ public class CEPlayer {
             this.methods.addItemToInventory(this.player, item);
         }
 
-        for (final String cmd : kit.getCommands()) { //todo() folia support
-            this.server.dispatchCommand(this.server.getConsoleSender(), cmd.replace("%Player%", this.player.getName()).replace("%player%", this.player.getName()));
-        }
+        new FoliaScheduler(this.plugin, Scheduler.global_scheduler) {
+            @Override
+            public void run() {
+                final String name = player.getName();
+                final ConsoleCommandSender sender = server.getConsoleSender();
+
+                for (final String cmd : kit.getCommands()) {
+                    server.dispatchCommand(sender, cmd.replace("%Player%", name).replace("%player%", name));
+                }
+            }
+        }.runNow();
     }
     
     /**
