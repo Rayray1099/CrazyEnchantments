@@ -9,7 +9,7 @@ plugins {
 val git = feather.getGit()
 
 val commitHash: String? = git.getCurrentCommitHash().subSequence(0, 7).toString()
-val isSnapshot: Boolean = System.getenv("IS_SNAPSHOT") != null
+val isSnapshot: Boolean = git.getCurrentBranch() == "dev"
 val content: String = if (isSnapshot) "[$commitHash](https://github.com/Crazy-Crew/${rootProject.name}/commit/$commitHash) ${git.getCurrentCommit()}" else rootProject.file("changelog.md").readText(Charsets.UTF_8)
 val minecraft = libs.versions.minecraft.get()
 
@@ -185,10 +185,19 @@ modrinth {
 
     loaders.addAll(listOf("paper", "folia", "purpur"))
 
-    syncBodyFrom = rootProject.file("DESCRIPTION.md").readText(Charsets.UTF_8)
+    syncBodyFrom = rootProject.file("description.md").readText(Charsets.UTF_8)
 
     autoAddDependsOn = false
     detectLoaders = false
+
+    dependencies {
+        optional.project("GriefPrevention")
+
+        optional.project("WorldGuard")
+        optional.project("WorldEdit")
+
+        optional.project("Towny")
+    }
 }
 
 hangarPublish {
@@ -210,7 +219,19 @@ hangarPublish {
                 platformVersions.set(versions)
 
                 dependencies {
+                    hangar("GriefPrevention") {
+                        required = false
+                    }
+
                     hangar("PlaceholderAPI") {
+                        required = false
+                    }
+
+                    hangar("WorldEdit") {
+                        required = false
+                    }
+
+                    hangar("Towny") {
                         required = false
                     }
                 }
