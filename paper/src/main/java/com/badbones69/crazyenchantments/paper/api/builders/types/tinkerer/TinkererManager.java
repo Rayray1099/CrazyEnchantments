@@ -79,7 +79,7 @@ public class TinkererManager {
             lore.add(l.replace("%Total%", amount).replace("%total%", amount));
         }
 
-        return new ItemBuilder().setMaterial(id).setName(name).setLore(lore).addStringPDC(DataKeys.experience.getNamespacedKey(), amount).build();
+        return new ItemBuilder().setMaterial(id).setName(name).setLore(lore).addKey(DataKeys.experience.getNamespacedKey(), amount).build();
     }
 
     public static int getTotalXP(final ItemStack item, final FileConfiguration config) {

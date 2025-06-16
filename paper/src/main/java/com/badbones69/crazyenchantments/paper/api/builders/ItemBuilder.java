@@ -122,7 +122,7 @@ public class ItemBuilder {
     // Custom Data
     private int customModelData;
     private boolean useCustomModelData;
-    private Map<NamespacedKey, String> stringPDC;
+    private Map<NamespacedKey, String> namespaces;
 
     /**
      * Create a blank item builder.
@@ -172,8 +172,7 @@ public class ItemBuilder {
 
         this.itemFlags = new ArrayList<>();
 
-        this.stringPDC = null;
-
+        this.namespaces = new HashMap<>();
     }
 
     private static final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
@@ -232,7 +231,7 @@ public class ItemBuilder {
         this.namePlaceholders = new HashMap<>(itemBuilder.namePlaceholders);
         this.lorePlaceholders = new HashMap<>(itemBuilder.lorePlaceholders);
         this.itemFlags = new ArrayList<>(itemBuilder.itemFlags);
-        this.stringPDC = itemBuilder.stringPDC;
+        this.namespaces = itemBuilder.namespaces;
     }
 
     /**
@@ -406,10 +405,10 @@ public class ItemBuilder {
 
             item.setAmount(this.itemAmount);
 
-            if (this.stringPDC != null) {
+            if (!this.namespaces.isEmpty()) {
                 item.editPersistentDataContainer(container -> {
-                    this.stringPDC.forEach((key, data) -> {
-                        container.set(key, PersistentDataType.STRING, data);
+                    this.namespaces.forEach((key, value) -> {
+                        container.set(key, PersistentDataType.STRING, value);
                     });
                 });
             }
@@ -439,14 +438,13 @@ public class ItemBuilder {
 
         item.setAmount(this.itemAmount);
 
-        if (this.stringPDC != null) {
+        if (!this.namespaces.isEmpty()) {
             item.editPersistentDataContainer(container -> {
-                this.stringPDC.forEach((key, data) -> {
-                    container.set(key, PersistentDataType.STRING, data);
+                this.namespaces.forEach((key, value) -> {
+                    container.set(key, PersistentDataType.STRING, value);
                 });
             });
         }
-
 
         if (!this.crazyEnchantments.isEmpty())  {
             addEnchantments(item, this.crazyEnchantments);
@@ -1260,13 +1258,12 @@ public class ItemBuilder {
     }
 
     /**
-     * @param key The name spaced key value.
-     * @param data The data that the key holds.
-     * @return The ItemBuilder with an updated item count.
+     * @param key the name spaced key value.
+     * @param data the data that the key holds.
+     * @return the ItemBuilder with an updated item count.
      */
-    public ItemBuilder addStringPDC(NamespacedKey key, String data) {
-        if (this.stringPDC == null) this.stringPDC = new HashMap<>();
-        this.stringPDC.put(key, data);
+    public ItemBuilder addKey(@NotNull final NamespacedKey key, final String data) {
+        this.namespaces.put(key, data);
 
         return this;
     }

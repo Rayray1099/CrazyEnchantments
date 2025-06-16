@@ -283,7 +283,7 @@ public class CrazyManager {
                   .setName(gkit.getString(path + "Display.Name", "Error getting name."))
                   .setLore(gkit.getStringList(path + "Display.Lore"))
                   .setGlow(gkit.getBoolean(path + "Display.Glowing", false))
-                  .addStringPDC(DataKeys.gkit_type.getNamespacedKey(), kit).build();
+                  .addKey(DataKeys.gkit_type.getNamespacedKey(), kit).build();
 
                 List<String> commands = gkit.getStringList(path + "Commands");
 
@@ -978,7 +978,7 @@ public class CrazyManager {
             itemBuilder.getLore().addAll(0, customEnchantments.stream().map(ColorUtils::legacyTranslateColourCodes).toList());
             itemBuilder.setEnchantments(enchantments);
 
-            items.add(itemBuilder.addStringPDC(DataKeys.random_number.getNamespacedKey(), String.valueOf(methods.getRandomNumber(0, Integer.MAX_VALUE))).build());
+            items.add(itemBuilder.addKey(DataKeys.random_number.getNamespacedKey(), String.valueOf(methods.getRandomNumber(0, Integer.MAX_VALUE))).build());
             // This is done so items do not stack if there are multiple of the same.
         }
 

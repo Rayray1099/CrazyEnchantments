@@ -28,7 +28,7 @@ public class KitsManager {
                 .setPlayerName(file.getString(path + ".Back-Item.Right.Player", ""))
                 .setName(file.getString(path + ".Back-Item.Right.Name", "&7&l<<&b&lBack"))
                 .setLore(file.getStringList(path + ".Back-Item.Right.Lore"))
-                .addStringPDC(DataKeys.back_right.getNamespacedKey(), "")
+                .addKey(DataKeys.back_right.getNamespacedKey(), "")
                 .build();
 
         backLeft = new ItemBuilder()
@@ -36,7 +36,7 @@ public class KitsManager {
                 .setPlayerName(file.getString(path + ".Back-Item.Left.Player", ""))
                 .setName(file.getString(path + ".Back-Item.Left.Name", "&b&lBack&7&l>>"))
                 .setLore(file.getStringList(path + ".Back-Item.Left.Lore"))
-                .addStringPDC(DataKeys.back_left.getNamespacedKey(), "")
+                .addKey(DataKeys.back_left.getNamespacedKey(), "")
                 .build();
     }
 
