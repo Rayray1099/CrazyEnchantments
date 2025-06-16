@@ -4,6 +4,7 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.builders.InventoryBuilder;
 import com.badbones69.crazyenchantments.paper.api.economy.Currency;
+import com.badbones69.crazyenchantments.paper.api.economy.CurrencyAPI;
 import com.badbones69.crazyenchantments.paper.api.enums.Dust;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
 import com.badbones69.crazyenchantments.paper.api.objects.CEBook;
@@ -59,6 +60,8 @@ public class TinkererMenu extends InventoryBuilder {
         @NotNull
         private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
+        private final CurrencyAPI api = this.plugin.getStarter().getCurrencyAPI();
+
         private final Map<Integer, Integer> slots = TinkererManager.getSlots();
 
         @EventHandler
@@ -101,11 +104,13 @@ public class TinkererMenu extends InventoryBuilder {
                 int total = 0;
                 boolean toggle = false;
 
+                final Currency currency = Currency.getCurrency(this.configuration.getString("Settings.Currency", "Vault"));
+
                 for (Map.Entry<Integer, Integer> slot : this.slots.entrySet()) {
                     ItemStack reward = inventory.getItem(slot.getValue());
 
                     if (reward != null) {
-                        if (Currency.getCurrency(this.configuration.getString("Settings.Currency", "Vault")) == Currency.VAULT) {
+                        if (currency == Currency.VAULT) {
                             total = TinkererManager.getTotalXP(inventory.getItem(slot.getKey()), this.configuration);
                         } else {
                             bottomInventory.addItem(reward).values().forEach(item -> player.getWorld().dropItem(player.getLocation(), item));
@@ -120,7 +125,9 @@ public class TinkererMenu extends InventoryBuilder {
 
                 player.closeInventory();
 
-                if (total != 0) this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), "eco give " + player.getName() + " " + total); //todo() wtf? also folia support
+                if (total != 0) {
+                    this.api.giveCurrency(player, currency, total);
+                }
 
                 if (toggle) player.sendMessage(Messages.TINKER_SOLD_MESSAGE.getMessage());
 
