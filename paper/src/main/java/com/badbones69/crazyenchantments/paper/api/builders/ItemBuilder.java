@@ -665,7 +665,7 @@ public class ItemBuilder {
      * @return The ItemBuilder with an updated name.
      */
     public ItemBuilder setName(final String itemName) {
-        if (itemName != null) this.itemName = ColorUtils.legacyTranslateColourCodes(itemName);
+        if (itemName != null && !itemName.isEmpty()) this.itemName = ColorUtils.legacyTranslateColourCodes(itemName);
 
         return this;
     }

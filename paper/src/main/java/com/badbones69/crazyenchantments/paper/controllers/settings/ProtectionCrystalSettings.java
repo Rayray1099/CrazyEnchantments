@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ProtectionCrystalSettings {
@@ -35,7 +36,7 @@ public class ProtectionCrystalSettings {
     @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    private final HashMap<UUID, List<ItemStack>> crystalItems = new HashMap<>();
+    private final Map<UUID, List<ItemStack>> crystalItems = new HashMap<>();
 
     private ItemBuilder crystal;
 
@@ -53,11 +54,7 @@ public class ProtectionCrystalSettings {
                 .setGlow(config.getBooleanValueWithDefault(false, "Settings", "ProtectionCrystal", "Glowing"));
     }
 
-    public ItemStack getCrystals() {
-        return getCrystals(1);
-    }
-
-    public ItemStack getCrystals(final int amount) {
+    public final ItemStack getCrystal(final int amount) {
         final ItemStack item = this.crystal.setAmount(amount).build();
 
         item.editPersistentDataContainer(container -> {
@@ -65,6 +62,10 @@ public class ProtectionCrystalSettings {
         });
 
         return item;
+    }
+
+    public final ItemStack getCrystal() {
+        return getCrystal(1);
     }
 
     /**
@@ -104,7 +105,7 @@ public class ProtectionCrystalSettings {
     /**
      * @return The hash map.
      */
-    public HashMap<UUID, List<ItemStack>> getCrystalItems() {
+    public Map<UUID, List<ItemStack>> getCrystalItems() {
         return this.crystalItems;
     }
 
@@ -112,7 +113,7 @@ public class ProtectionCrystalSettings {
      * Check if the player has permissions & if the option is enabled.
      * @param player - The player to check.
      */
-    public boolean isProtectionSuccessful(final Player player) {
+    public final boolean isProtectionSuccessful(final Player player) {
         if (player.hasPermission("crazyenchantments.bypass.protectioncrystal")) return true;
 
         if (this.options.isProtectionCrystalChanceToggle()) return this.methods.randomPicker(this.options.getProtectionCrystalSuccessChance(), 100);
@@ -134,7 +135,7 @@ public class ProtectionCrystalSettings {
      * @param item - The item to check.
      * @return True if the item is a protection crystal.
      */
-    public boolean isProtectionCrystal(final ItemStack item) {
+    public final boolean isProtectionCrystal(final ItemStack item) {
         return item.getPersistentDataContainer().has(DataKeys.protection_crystal.getNamespacedKey());
     }
 
@@ -143,7 +144,7 @@ public class ProtectionCrystalSettings {
      * @param item - The item to remove protection from.
      * @return The new item.
      */
-    public ItemStack removeProtection(final ItemStack item) {
+    public final ItemStack removeProtection(final ItemStack item) {
         final PersistentDataContainerView view = item.getPersistentDataContainer();
 
         if (view.has(DataKeys.protected_item.getNamespacedKey())) {
@@ -168,7 +169,7 @@ public class ProtectionCrystalSettings {
      * @param item - The item to add protection to.
      * @return The new item.
      */
-    public ItemStack addProtection(final ItemStack item) {
+    public final ItemStack addProtection(final ItemStack item) {
         final List<Component> itemLore = item.lore();
 
         List<Component> lore = itemLore != null ? itemLore : new ArrayList<>();

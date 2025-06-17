@@ -572,7 +572,7 @@ public class CECommand implements CommandExecutor {
 
                     if (this.methods.isInventoryFull(player)) return true;
 
-                    this.methods.addItemToInventory(player, this.protectionCrystalSettings.getCrystals(amount));
+                    this.methods.addItemToInventory(player, this.protectionCrystalSettings.getCrystal(amount));
                     Map<String, String> placeholders = new HashMap<>();
 
                     placeholders.put("%Amount%", String.valueOf(amount));

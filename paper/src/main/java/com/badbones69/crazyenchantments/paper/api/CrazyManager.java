@@ -4,6 +4,7 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
+import com.badbones69.crazyenchantments.paper.api.economy.Currency;
 import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import com.badbones69.crazyenchantments.paper.api.enums.Dust;
 import com.badbones69.crazyenchantments.paper.api.enums.Scrolls;
@@ -16,6 +17,7 @@ import com.badbones69.crazyenchantments.paper.api.managers.BowEnchantmentManager
 import com.badbones69.crazyenchantments.paper.api.managers.ShopManager;
 import com.badbones69.crazyenchantments.paper.api.managers.WingsManager;
 import com.badbones69.crazyenchantments.paper.api.objects.CEBook;
+import com.badbones69.crazyenchantments.paper.api.objects.CEOption;
 import com.badbones69.crazyenchantments.paper.api.objects.CEPlayer;
 import com.badbones69.crazyenchantments.paper.api.objects.CEnchantment;
 import com.badbones69.crazyenchantments.paper.api.objects.Category;
@@ -58,6 +60,7 @@ import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +114,7 @@ public class CrazyManager {
     private final List<CEPlayer> players = new ArrayList<>();
     private final List<Material> blockList = new ArrayList<>();
     private final Map<Material, Double> headMap = new HashMap<>();
+    private final Map<ShopOption, CEOption> shopOptions = new HashMap<>();
 
     private int rageMaxLevel;
     private boolean gkitzToggle;
@@ -335,8 +339,7 @@ public class CrazyManager {
 
         this.cropManagerVersion = new CropManager();
 
-        // Loads the ShopOptions.
-        ShopOption.loadShopOptions(config);
+        loadShopOptions(config);
 
         // Loads the shop manager.
         this.shopManager.load(config);
@@ -355,6 +358,45 @@ public class CrazyManager {
 
         // Starts the wings task.
         WingsUtils.startWings();
+    }
+
+    public void loadShopOptions(final CommentedConfigurationNode config) {
+        this.shopOptions.clear();
+
+        for (final ShopOption option : ShopOption.values()) {
+            CommentedConfigurationNode itemNode = config.node("Settings", option.getPath());
+
+            if (option == ShopOption.SUCCESS_DUST || option == ShopOption.DESTROY_DUST) {
+                itemNode = config.node("Settings", "Dust", option.getPath());
+            }
+
+            final CommentedConfigurationNode costNode = config.node("Settings", "Costs", option.getPath());
+
+            addShopOption(option, itemNode, costNode, option.getNamePath(), option.getLorePath());
+        }
+    }
+
+    public void addShopOption(final ShopOption shopOption, final CommentedConfigurationNode itemNode, final CommentedConfigurationNode costNode, final String namePath, final String lorePath) {
+        try {
+            final CEOption option = new CEOption(
+                    new ItemBuilder().setMaterial(itemNode.node("Item").getString("CHEST")).setName(itemNode.node(namePath).getString(""))
+                            .setLore(Methods.getStringList(itemNode, lorePath))
+                            .setPlayerName(itemNode.node("Player").getString(""))
+                            .setGlow(itemNode.node("Glowing").getBoolean(false)),
+                    itemNode.node("Slot").getInt(1)-1,
+                    itemNode.node("InGUI").getBoolean(true),
+                    costNode.node("Cost").getInt(100),
+                    Currency.getCurrency(costNode.node("Currency").getString("Vault"))
+            );
+
+            this.shopOptions.put(shopOption, option);
+        } catch (final Exception exception) {
+            this.logger.error("The option {} has failed to load.", shopOption.getPath(), exception);
+        }
+    }
+
+    public final Map<ShopOption, CEOption> getShopOptions() {
+        return Collections.unmodifiableMap(this.shopOptions);
     }
 
     /**
