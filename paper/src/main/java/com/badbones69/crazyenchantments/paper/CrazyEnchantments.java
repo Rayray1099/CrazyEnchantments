@@ -6,7 +6,6 @@ import com.badbones69.crazyenchantments.paper.api.builders.types.BaseMenu;
 import com.badbones69.crazyenchantments.paper.api.builders.types.blacksmith.BlackSmithMenu;
 import com.badbones69.crazyenchantments.paper.api.builders.types.gkitz.KitsMenu;
 import com.badbones69.crazyenchantments.paper.api.builders.types.tinkerer.TinkererMenu;
-import com.badbones69.crazyenchantments.paper.api.utils.FileUtils;
 import com.badbones69.crazyenchantments.paper.commands.BlackSmithCommand;
 import com.badbones69.crazyenchantments.paper.commands.CECommand;
 import com.badbones69.crazyenchantments.paper.commands.CETab;
@@ -64,13 +63,15 @@ public class CrazyEnchantments extends JavaPlugin {
     private FileManager fileManager;
     private ConfigOptions options;
 
+    private CrazyInstance instance;
+
     @Override
     public void onEnable() {
         this.fusion = new FusionPaper(this);
 
-        final CrazyInstance instance = new CrazyInstance(this.fileManager = this.fusion.getFileManager(), getDataPath());
+        this.instance = new CrazyInstance(this.fileManager = this.fusion.getFileManager(), getDataPath());
 
-        instance.init(); // initialize
+        this.instance.init(); // initialize
 
         this.options = instance.getOptions();
 
@@ -141,8 +142,6 @@ public class CrazyEnchantments extends JavaPlugin {
         registerCommand(getCommand("blacksmith"), null, new BlackSmithCommand());
 
         registerCommand(getCommand("gkit"), new GkitzTab(), new GkitzCommand());
-
-        FileUtils.loadFiles();
     }
 
     @Override
@@ -171,6 +170,10 @@ public class CrazyEnchantments extends JavaPlugin {
 
     public final FileManager getFileManager() {
         return this.fileManager;
+    }
+
+    public final CrazyInstance getInstance() {
+        return this.instance;
     }
 
     public final ConfigOptions getOptions() {

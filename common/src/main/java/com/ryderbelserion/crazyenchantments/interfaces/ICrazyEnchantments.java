@@ -14,4 +14,6 @@ public interface ICrazyEnchantments {
 
     void init();
 
+    void reload();
+
 }

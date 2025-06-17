@@ -24,12 +24,11 @@ import com.badbones69.crazyenchantments.paper.api.objects.enchants.EnchantmentTy
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.api.objects.items.ScramblerData;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
-import com.badbones69.crazyenchantments.paper.api.utils.FileUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
+import com.ryderbelserion.crazyenchantments.CrazyInstance;
 import com.ryderbelserion.crazyenchantments.enums.FileKeys;
-import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import com.ryderbelserion.fusion.paper.FusionPaper;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -51,9 +50,9 @@ public class CECommand implements CommandExecutor {
 
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    private final FusionPaper fusion = this.plugin.getFusion();
+    private final CrazyInstance crazyInstance = this.plugin.getInstance();
 
-    private final ConfigOptions options = this.plugin.getOptions();
+    private final FusionPaper fusion = this.plugin.getFusion();
 
     private final Server server = this.plugin.getServer();
 
@@ -143,7 +142,7 @@ public class CECommand implements CommandExecutor {
                 if (hasPermission(sender, "reload")) {
                     this.fusion.reload(false); // reload fusion api
 
-                    this.options.init(); // refresh config options
+                    this.crazyInstance.reload();
 
                     this.crazyManager.getCEPlayers().forEach(name -> this.crazyManager.backupCEPlayer(name.getPlayer()));
 
@@ -158,8 +157,6 @@ public class CECommand implements CommandExecutor {
                     KitsManager.load();
 
                     sender.sendMessage(Messages.CONFIG_RELOAD.getMessage());
-
-                    FileUtils.loadFiles();
                 }
 
                 return true;
