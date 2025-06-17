@@ -318,7 +318,13 @@ public class CrazyManager {
         // Loads Slot Crystal.
         this.slot_crystal = new ItemBuilder().setMaterial(config.node("Settings", "Slot_Crystal", "Item").getString("RED_WOOL"))
                 .setName(config.node("Settings", "Slot_Crystal", "Name").getString("&5&lSlot &b&lCrystal"))
-                .setLore(Methods.getStringList(config,"Settings", "Slot_Crystal", "Lore"))
+                .setLore(Methods.getStringList(config, List.of(
+                        "&7A rare crystal that is said to",
+                        "&7increase the amount of enchants",
+                        "&7that can be added onto an item.",
+                        "",
+                        "&7&l(&6&l!&7&l) &7Drag and drop on an item."
+                ), "Settings", "Slot_Crystal", "Lore"))
                 .setGlow(config.node("Settings", "Slot_Crystal", "Glowing").getBoolean(false))
                 .addKey(DataKeys.slot_crystal.getNamespacedKey(), "")
                 .build();
