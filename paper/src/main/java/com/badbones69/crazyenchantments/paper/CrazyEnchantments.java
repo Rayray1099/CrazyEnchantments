@@ -56,7 +56,7 @@ public class CrazyEnchantments extends JavaPlugin {
 
     private ArmorEnchantments armorEnchantments;
 
-    private final BossBarController bossBarController = new BossBarController();
+    private BossBarController bossBarController;
 
     private CrazyManager crazyManager;
 
@@ -73,6 +73,8 @@ public class CrazyEnchantments extends JavaPlugin {
         instance.init(); // initialize
 
         this.options = instance.getOptions();
+
+        this.bossBarController = new BossBarController();
 
         this.starter = new Starter();
         this.starter.run();
