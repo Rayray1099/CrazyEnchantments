@@ -15,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static java.util.regex.Matcher.quoteReplacement;
@@ -108,8 +109,6 @@ public class ColorUtils {
     }
 
     public static ItemBuilder getRandomPaneColor() {
-        Random random = new Random();
-
         List<String> colors = Arrays.asList(
                 "WHITE_STAINED_GLASS_PANE",
                 "ORANGE_STAINED_GLASS_PANE",
@@ -128,7 +127,7 @@ public class ColorUtils {
                 "RED_STAINED_GLASS_PANE",
                 "BLACK_STAINED_GLASS_PANE");
 
-        return new ItemBuilder().setMaterial(colors.get(random.nextInt(colors.size())));
+        return new ItemBuilder().setMaterial(colors.get(ThreadLocalRandom.current().nextInt(colors.size())));
     }
 
     public static String stripStringColour(final String s) {
