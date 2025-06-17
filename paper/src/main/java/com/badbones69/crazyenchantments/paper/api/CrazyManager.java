@@ -31,7 +31,9 @@ import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBo
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
 import com.badbones69.crazyenchantments.paper.support.CropManager;
 import com.badbones69.crazyenchantments.paper.support.interfaces.CropManagerVersion;
-import com.google.gson.Gson;
+import com.ryderbelserion.crazyenchantments.enums.FileKeys;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
+import com.ryderbelserion.fusion.core.files.types.YamlCustomFile;
 import com.ryderbelserion.fusion.paper.api.enums.Scheduler;
 import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.datacomponent.DataComponentTypes;
@@ -52,6 +54,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -68,6 +71,8 @@ public class CrazyManager {
 
     @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
+
+    private final ConfigOptions options = this.plugin.getOptions();
 
     private final ComponentLogger logger = this.plugin.getComponentLogger();
     
@@ -136,7 +141,6 @@ public class CrazyManager {
      * Do not use unless needed.
      */
     public void load() {
-        final FileConfiguration config = Files.CONFIG.getFile();
         final FileConfiguration gkit = Files.GKITZ.getFile();
         final FileConfiguration enchants = Files.ENCHANTMENTS.getFile();
 
@@ -152,7 +156,7 @@ public class CrazyManager {
         this.starter.getPluginSupport().updateHooks();
 
         // Check if we should patch player health.
-        boolean playerHealthPatch = config.getBoolean("Settings.Reset-Players-Max-Health", true);
+        boolean playerHealthPatch = this.options.isResetPlayersMaxHealth();
 
         this.plugin.getServer().getOnlinePlayers().forEach(player -> { //todo() this is retarded
             // Load our players.
@@ -197,24 +201,27 @@ public class CrazyManager {
 
         Scrolls.getWhiteScrollProtectionName();
 
-        this.enchantmentBookSettings.setEnchantmentBook(new ItemBuilder().setMaterial(config.getString("Settings.Enchantment-Book-Item", "BOOK")));
-        this.useUnsafeEnchantments = config.getBoolean("Settings.EnchantmentOptions.UnSafe-Enchantments", true);
-        this.maxEnchantmentCheck = config.getBoolean("Settings.EnchantmentOptions.MaxAmountOfEnchantmentsToggle", true);
-        this.useConfigLimits = config.getBoolean("Settings.EnchantmentOptions.Limit.Check-Perms", false);
-        this.defaultLimit = config.getInt("Settings.EnchantmentOptions.Limit.Default-Limit", 0);
-        this.defaultBaseLimit = config.getInt("Settings.EnchantmentOptions.Limit.Default-Base-Limit", 0);
-        this.useEnchantmentLimiter = config.getBoolean("Settings.EnchantmentOptions.Limit.Enable-SlotCrystal", true);
-        this.checkVanillaLimit = config.getBoolean("Settings.EnchantmentOptions.IncludeVanillaEnchantments", false);
-        this.gkitzToggle = !config.contains("Settings.GKitz.Enabled") || config.getBoolean("Settings.GKitz.Enabled", true);
-        this.rageMaxLevel = config.getInt("Settings.EnchantmentOptions.MaxRageLevel", 4);
-        this.breakRageOnDamage = config.getBoolean("Settings.EnchantmentOptions.Break-Rage-On-Damage", true);
-        this.useRageBossBar = config.getBoolean("Settings.EnchantmentOptions.Rage-Boss-Bar", false);
-        this.rageIncrement = config.getDouble("Settings.EnchantmentOptions.Rage-Increase", 0.1);
-        setDropBlocksBlast(config.getBoolean("Settings.EnchantmentOptions.Drop-Blocks-For-Blast", true));
-        setDropBlocksVeinMiner(config.getBoolean("Settings.EnchantmentOptions.Drop-Blocks-For-VeinMiner", true));
+        final YamlCustomFile customFile = FileKeys.config.getCustomFile();
+        final CommentedConfigurationNode config = customFile.getConfiguration();
 
-        this.CEFailureOverride = config.getInt("Settings.CEFailureOverride", -1);
-        this.CESuccessOverride = config.getInt("Settings.CESuccessOverride", -1);
+        this.enchantmentBookSettings.setEnchantmentBook(new ItemBuilder().setMaterial(config.node("Settings", "Enchantment-Book-Item").getString("BOOK")));
+        this.useUnsafeEnchantments = this.options.isUseUnsafeEnchantments();
+        this.maxEnchantmentCheck = config.node("Settings", "MaxAmountOfEnchantmentsToggle").getBoolean(true);
+        this.useConfigLimits = config.node("Settings", "EnchantmentOptions", "Limit", "Check-Perms").getBoolean(false);
+        this.defaultLimit = config.node("Settings", "EnchantmentOptions", "Limit", "Default-Limit").getInt(0);
+        this.defaultBaseLimit = config.node("Settings", "EnchantmentOptions", "Limit", "Default-Base-Limit").getInt(0);
+        this.useEnchantmentLimiter = config.node("Settings", "EnchantmentOptions", "Limit", "Enable-SlotCrystal").getBoolean(true);
+        this.checkVanillaLimit = config.node("Settings", "EnchantmentOptions", "IncludeVanillaEnchantments").getBoolean(false);
+        this.gkitzToggle = config.node("Settings", "GKitz", "Enabled").getBoolean(true);
+        this.rageMaxLevel = config.node("Settings", "EnchantmentOptions", "MaxRageLevel").getInt(4);
+        this.breakRageOnDamage = config.node("Settings", "EnchantmentOptions", "Break-Rage-On-Damage").getBoolean(true);
+        this.useRageBossBar = config.node("Settings", "EnchantmentOptions", "Rage-Boss-Bar").getBoolean(false);
+        this.rageIncrement = config.node("Settings", "EnchantmentOptions", "Rage-Increase").getDouble(0.1);
+        setDropBlocksBlast(config.node("Settings", "EnchantmentOptions", "Drop-Blocks-For-Blast").getBoolean(true));
+        setDropBlocksVeinMiner(config.node("Settings", "EnchantmentOptions", "Drop-Blocks-For-VeinMiner").getBoolean(true));
+
+        this.CEFailureOverride = config.node("Settings", "CEFailureOverride").getInt(-1);
+        this.CESuccessOverride = config.node("Settings", "CESuccessOverride").getInt(-1);
 
         this.enchantmentBookSettings.populateMaps();
 
@@ -298,43 +305,38 @@ public class CrazyManager {
         }
 
         // Load all scroll types.
-        Scrolls.loadScrolls();
+        Scrolls.loadScrolls(config);
         // Load all dust types.
-        Dust.loadDust();
+        Dust.loadDust(config);
 
         // Loads the protection crystals.
-        this.protectionCrystalSettings.loadProtectionCrystal();
+        this.protectionCrystalSettings.loadProtectionCrystal(customFile);
         // Loads the scrambler.
         this.scramblerData = new ScramblerData();
-        this.scramblerData.loadScrambler();
-        // Loads Slot Crystal.
-        this.slot_crystal = new ItemBuilder().setMaterial(config.getString("Settings.Slot_Crystal.Item", "RED_WOOL"))
-                .setName(config.getString("Settings.Slot_Crystal.Name", "&5&lSlot &b&lCrystal"))
-                .setLore(config.getStringList("Settings.Slot_Crystal.Lore"))
-                .setGlow(config.getBoolean("Settings.Slot_Crystal.Glowing", false)).build();
+        this.scramblerData.loadScrambler(config);
 
-        this.slot_crystal.editPersistentDataContainer(container -> {
-            container.set(DataKeys.slot_crystal.getNamespacedKey(), PersistentDataType.BOOLEAN, true);
-        });
+        // Loads Slot Crystal.
+        this.slot_crystal = new ItemBuilder().setMaterial(config.node("Settings", "Slot_Crystal", "Item").getString("RED_WOOL"))
+                .setName(config.node("Settings", "Slot_Crystal", "Name").getString("&5&lSlot &b&lCrystal"))
+                .setLore(Methods.getStringList(config,"Settings", "Slot_Crystal", "Lore"))
+                .setGlow(config.node("Settings", "Slot_Crystal", "Glowing").getBoolean(false))
+                .addKey(DataKeys.slot_crystal.getNamespacedKey(), "")
+                .build();
+
         // Loads the Scroll Control settings.
         this.scrollData = new ScrollData();
-        this.scrollData.loadScrollControl();
+        this.scrollData.loadScrollControl(config);
 
         this.cropManagerVersion = new CropManager();
 
-        // Loads the scrolls.
-        Scrolls.loadScrolls();
-        // Loads the dust.
-        Dust.loadDust();
-
         // Loads the ShopOptions.
-        ShopOption.loadShopOptions();
+        ShopOption.loadShopOptions(config);
 
         // Loads the shop manager.
-        this.shopManager.load();
+        this.shopManager.load(config);
 
         // Loads the settings for wings enchantment.
-        this.wingsManager.load();
+        this.wingsManager.load(config);
 
         // Loads the settings for the bow enchantments.
         this.bowEnchantmentManager.load();
@@ -343,7 +345,7 @@ public class CrazyManager {
         this.armorEnchantmentManager.load();
 
         // Loads the settings for the ally enchantments.
-        this.allyManager.load();
+        this.allyManager.load(config);
 
         // Starts the wings task.
         WingsUtils.startWings();
@@ -553,14 +555,12 @@ public class CrazyManager {
      * @param enchantments The enchantments to be added.
      */
     public void addEnchantments(final ItemStack itemStack, final Map<CEnchantment, Integer> enchantments) {
-        final Gson gson = new Gson();
-
         final Map<CEnchantment, Integer> currentEnchantments = this.enchantmentBookSettings.getEnchantments(itemStack);
 
         this.enchantmentBookSettings.removeEnchantments(itemStack, enchantments.keySet().stream().filter(currentEnchantments::containsKey).toList());
 
         String data = itemStack.getPersistentDataContainer().get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING);
-        final Enchant enchantData = data != null ? gson.fromJson(data, Enchant.class) : new Enchant(new HashMap<>());
+        final Enchant enchantData = data != null ? Methods.getGson().fromJson(data, Enchant.class) : new Enchant(new HashMap<>());
 
         final List<Component> lore = itemStack.lore();
 
@@ -584,9 +584,7 @@ public class CrazyManager {
 
         itemStack.setData(DataComponentTypes.LORE, ItemLore.lore().addLines(newLore).build());
 
-        itemStack.editPersistentDataContainer(container -> {
-            container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, gson.toJson(enchantData));
-        });
+        itemStack.editPersistentDataContainer(container -> container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, Methods.getGson().toJson(enchantData)));
     }
 
     /**
@@ -600,7 +598,7 @@ public class CrazyManager {
 
         int type = view.getOrDefault(DataKeys.limit_reducer.getNamespacedKey(), PersistentDataType.INTEGER, 0);
 
-        final int newAmount = type += amount;
+        final int newAmount = type += amount; //todo() this needs to be tested.
 
         itemStack.editPersistentDataContainer(container -> {
             if (newAmount == 0) {

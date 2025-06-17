@@ -1,7 +1,7 @@
 package com.badbones69.crazyenchantments.paper.controllers.settings;
 
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
+import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.api.economy.Currency;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.Enchant;
@@ -14,20 +14,20 @@ import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EnchantUtils;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
+import com.ryderbelserion.crazyenchantments.enums.FileKeys;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.Color;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,24 +35,18 @@ import java.util.List;
 import java.util.Map;
 
 public class EnchantmentBookSettings {
+    
+    private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    private ItemBuilder enchantmentBook;
+    private final ComponentLogger logger = this.plugin.getComponentLogger();
+    
+    private final ConfigOptions options = this.plugin.getOptions();
 
     private final List<Category> categories = Lists.newArrayList();
 
     private final List<CEnchantment> registeredEnchantments = Lists.newArrayList();
 
-    private final Gson gson = new Gson();
-
-    /**
-     *
-     * @return True if unsafe enchantments are enabled.
-     */
-    public boolean useUnsafeEnchantments() {
-        final FileConfiguration config = Files.CONFIG.getFile();
-
-        return config.getBoolean("Settings.EnchantmentOptions.UnSafe-Enchantments", true);
-    }
+    private ItemBuilder enchantmentBook;
 
     /**
      * This method converts an ItemStack into a CEBook.
@@ -65,7 +59,7 @@ public class EnchantmentBookSettings {
 
         if (!view.has(DataKeys.stored_enchantments.getNamespacedKey())) return null;
 
-        EnchantedBook data = this.gson.fromJson(view.get(DataKeys.stored_enchantments.getNamespacedKey(), PersistentDataType.STRING), EnchantedBook.class);
+        EnchantedBook data = Methods.getGson().fromJson(view.get(DataKeys.stored_enchantments.getNamespacedKey(), PersistentDataType.STRING), EnchantedBook.class);
        
         CEnchantment enchantment = null;
 
@@ -89,7 +83,7 @@ public class EnchantmentBookSettings {
     public ItemStack getNewScrambledBook(final ItemStack book) {
         final PersistentDataContainerView view = book.getPersistentDataContainer();
 
-        final EnchantedBook data = this.gson.fromJson(view.get(DataKeys.stored_enchantments.getNamespacedKey(), PersistentDataType.STRING), EnchantedBook.class);
+        final EnchantedBook data = Methods.getGson().fromJson(view.get(DataKeys.stored_enchantments.getNamespacedKey(), PersistentDataType.STRING), EnchantedBook.class);
 
         CEnchantment enchantment = null;
 
@@ -121,7 +115,7 @@ public class EnchantmentBookSettings {
         if (!view.has(DataKeys.stored_enchantments.getNamespacedKey())) return false;
 
         final String dataString = view.get(DataKeys.stored_enchantments.getNamespacedKey(), PersistentDataType.STRING);
-        final EnchantedBook data = this.gson.fromJson(dataString, EnchantedBook.class);
+        final EnchantedBook data = Methods.getGson().fromJson(dataString, EnchantedBook.class);
 
         for (final CEnchantment enchantment : getRegisteredEnchantments()) {
             if (enchantment.getName().equalsIgnoreCase(data.getName())) return true;
@@ -180,7 +174,7 @@ public class EnchantmentBookSettings {
 
         if (data == null) return Collections.emptyMap();
 
-        final Enchant enchants = this.gson.fromJson(data, Enchant.class);
+        final Enchant enchants = Methods.getGson().fromJson(data, Enchant.class);
 
         if (enchants.isEmpty()) return Collections.emptyMap();
 
@@ -226,66 +220,63 @@ public class EnchantmentBookSettings {
         return this.categories;
     }
 
-    private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
-
-    private final ComponentLogger logger = this.plugin.getComponentLogger();
-
     /**
      * Loads in all config options.
      */
     public void populateMaps() {
-        final FileConfiguration config = Files.CONFIG.getFile();
+        @NotNull final CommentedConfigurationNode config = FileKeys.config.getConfig();
 
-        final ConfigurationSection section = config.getConfigurationSection("Categories");
+        final boolean hasSection = config.hasChild("Categories");
 
-        if (section == null) {
+        if (!hasSection) {
             this.logger.error("Could not find the Categories section in the config.yml");
 
             return;
         }
+        
+        final Map<Object, CommentedConfigurationNode> childrenMap = config.node("Categories").childrenMap();
+        
+        childrenMap.forEach((object, child) -> {
+            final CommentedConfigurationNode lostBook = child.node("LostBook");
 
-        for (String category : section.getKeys(false)) {
-            String path = "Categories." + category;
-            LostBook lostBook = new LostBook(
-                    config.getInt(path + ".LostBook.Slot", -1),
-                    config.getBoolean(path + ".LostBook.InGUI", true),
+            final LostBook book = new LostBook(
+                    lostBook.node("Slot").getInt(-1),
+                    lostBook.node("InGUI").getBoolean(true),
+                    new ItemBuilder().setMaterial(lostBook.node("Item").getString("BOOK"))
+                            .setPlayerName(lostBook.node("Player").getString(""))
+                            .setLore(Methods.getStringList(lostBook, "Lore"))
+                            .setGlow(lostBook.node("Glowing").getBoolean(true)),
+                    lostBook.node("Cost").getInt(10000),
+                    Currency.getCurrency(lostBook.node("Currency").getString("Vault")),
+                    lostBook.node("FireworkToggle").getBoolean(false),
+                    getColors(lostBook.node("FireworkColors").getString("Red, White, Blue")),
+                    lostBook.node("Sound-Toggle").getBoolean(false),
+                    lostBook.node("Sound").getString("BLOCK_ANVIL_PLACE")
+            );
 
-                    new ItemBuilder().setMaterial(config.getString(path + ".LostBook.Item", "BOOK"))
-                            .setPlayerName(config.getString(path + ".LostBook.Player", ""))
-                            .setName(config.getString(path + ".LostBook.Name", "&8&l&nA Lost %category%&8&l&n Book"))
-                            .setLore(config.getStringList(path + ".LostBook.Lore"))
-                            .setGlow(config.getBoolean(path + ".LostBook.Glowing", true)),
+            final Category category = new Category(object.toString(),
+                    child.node("Slot").getInt(-1),
+                    child.node("InGUI").getBoolean(true),
+                    new ItemBuilder().setMaterial(child.node("Item").getString(ColorUtils.getRandomPaneColor().getName()))
+                            .setPlayerName(child.node("Player").getString(""))
+                            .setName(child.node("Name").getString(""))
+                            .setLore(Methods.getStringList(child, "Lore"))
+                            .setGlow(child.node("Glowing").getBoolean(false)),
+                    child.node("Cost").getInt(10000),
+                    Currency.getCurrency(child.node("Currency").getString("Vault")),
+                    child.node("Rarity").getInt(2),
+                    book,
+                    child.node("EnchOptions", "SuccessPercent", "Max").getInt(90),
+                    child.node("EnchOptions", "SuccessPercent", "Min").getInt(10),
+                    child.node("EnchOptions", "DestroyPercent", "Max").getInt(10),
+                    child.node("EnchOptions", "DestroyPercent", "Min").getInt(0),
+                    child.node("EnchOptions", "MaxLvlToggle").getBoolean(true),
+                    child.node("EnchOptions", "LvlRange", "Max").getInt(2),
+                    child.node("EnchOptions", "LvlRange", "Min").getInt(1)
+            );
 
-                    config.getInt(path + ".LostBook.Cost", 10000),
-                    Currency.getCurrency(config.getString(path + ".LostBook.Currency", "Vault")),
-                    config.getBoolean(path + ".LostBook.FireworkToggle", false),
-                    getColors(config.getString(path + ".LostBook.FireworkColors", "Red, White, Blue")),
-                    config.getBoolean(path + ".LostBook.Sound-Toggle", false),
-                    config.getString(path + ".LostBook.Sound", "BLOCK_ANVIL_PLACE"));
-
-            this.categories.add(new Category(
-                    category,
-                    config.getInt(path + ".Slot", -1),
-                    config.getBoolean(path + ".InGUI", true),
-
-                    new ItemBuilder().setMaterial(config.getString(path + ".Item", ColorUtils.getRandomPaneColor().getName()))
-                            .setPlayerName(config.getString(path + ".Player", ""))
-                            .setName(config.getString(path + ".Name", category))
-                            .setLore(config.getStringList(path + ".Lore"))
-                            .setGlow(config.getBoolean(path + ".Glowing", false)),
-
-                    config.getInt(path + ".Cost", 10000),
-                    Currency.getCurrency(config.getString(path + ".Currency", "Vault")),
-                    config.getInt(path + ".Rarity", 2),
-                    lostBook,
-                    config.getInt(path + ".EnchOptions.SuccessPercent.Max", 90),
-                    config.getInt(path + ".EnchOptions.SuccessPercent.Min", 10),
-                    config.getInt(path + ".EnchOptions.DestroyPercent.Max", 10),
-                    config.getInt(path + ".EnchOptions.DestroyPercent.Min", 0),
-                    config.getBoolean(path + ".EnchOptions.MaxLvlToggle", true),
-                    config.getInt(path + ".EnchOptions.LvlRange.Max", 2),
-                    config.getInt(path + ".EnchOptions.LvlRange.Min", 1)));
-        }
+            this.categories.add(category);
+        });
     }
 
     /**
@@ -317,9 +308,9 @@ public class EnchantmentBookSettings {
     public int getLevel(@NotNull final ItemStack item, @NotNull final CEnchantment enchant) {
         final String data = item.getPersistentDataContainer().get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING);
 
-        int level = data == null ? 0 : this.gson.fromJson(data, Enchant.class).getLevel(enchant.getName());
+        int level = data == null ? 0 : Methods.getGson().fromJson(data, Enchant.class).getLevel(enchant.getName());
 
-        if (!useUnsafeEnchantments() && level > enchant.getMaxLevel()) level = enchant.getMaxLevel();
+        if (!this.options.isUseUnsafeEnchantments() && level > enchant.getMaxLevel()) level = enchant.getMaxLevel();
 
         return level;
     }
@@ -343,7 +334,7 @@ public class EnchantmentBookSettings {
         Enchant data;
 
         if (view.has(DataKeys.enchantments.getNamespacedKey())) {
-            data = this.gson.fromJson(view.get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING), Enchant.class);
+            data = Methods.getGson().fromJson(view.get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING), Enchant.class);
         } else {
             data = new Enchant(new HashMap<>());
         }
@@ -356,7 +347,7 @@ public class EnchantmentBookSettings {
             });
         } else {
             itemStack.editPersistentDataContainer(container -> {
-                container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, this.gson.toJson(data));
+                container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, Methods.getGson().toJson(data));
             });
         }
 
@@ -379,7 +370,7 @@ public class EnchantmentBookSettings {
         Enchant data;
 
         if (view.has(DataKeys.enchantments.getNamespacedKey())) {
-            data = this.gson.fromJson(view.get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING), Enchant.class);
+            data = Methods.getGson().fromJson(view.get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING), Enchant.class);
         } else {
             data = new Enchant(new HashMap<>());
         }
@@ -392,7 +383,7 @@ public class EnchantmentBookSettings {
             });
         } else {
             itemStack.editPersistentDataContainer(container -> {
-                container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, this.gson.toJson(data));
+                container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, Methods.getGson().toJson(data));
             });
         }
     }

@@ -34,6 +34,10 @@ import com.badbones69.crazyenchantments.paper.listeners.ScrollListener;
 import com.badbones69.crazyenchantments.paper.listeners.ShopListener;
 import com.badbones69.crazyenchantments.paper.listeners.SlotCrystalListener;
 import com.badbones69.crazyenchantments.paper.listeners.server.WorldSwitchListener;
+import com.ryderbelserion.crazyenchantments.CrazyInstance;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
+import com.ryderbelserion.fusion.core.files.FileManager;
+import com.ryderbelserion.fusion.paper.FusionPaper;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Server;
 import org.bukkit.command.CommandExecutor;
@@ -50,15 +54,26 @@ public class CrazyEnchantments extends JavaPlugin {
     // Plugin Listeners.
     public final PluginManager pluginManager = getServer().getPluginManager();
 
-    private FireworkDamageListener fireworkDamageListener;
     private ArmorEnchantments armorEnchantments;
 
     private final BossBarController bossBarController = new BossBarController();
 
     private CrazyManager crazyManager;
 
+    private FusionPaper fusion;
+    private FileManager fileManager;
+    private ConfigOptions options;
+
     @Override
     public void onEnable() {
+        this.fusion = new FusionPaper(this);
+
+        final CrazyInstance instance = new CrazyInstance(this.fileManager = this.fusion.getFileManager(), getDataPath());
+
+        instance.init(); // initialize
+
+        this.options = instance.getOptions();
+
         this.starter = new Starter();
         this.starter.run();
 
@@ -66,7 +81,6 @@ public class CrazyEnchantments extends JavaPlugin {
 
         this.crazyManager = this.starter.getCrazyManager();
 
-        final FileConfiguration config = Files.CONFIG.getFile();
         final FileConfiguration tinker = Files.TINKER.getFile();
 
         if (!tinker.contains("Settings.Tinker-Version")) {
@@ -75,7 +89,7 @@ public class CrazyEnchantments extends JavaPlugin {
             Files.TINKER.saveFile();
         }
 
-        if (config.getBoolean("Settings.Toggle-Metrics", true)) new Metrics(this, 4494);
+        if (this.options.isMetricsEnabled()) new Metrics(this, 4494);
 
         // Load what we need to properly enable the plugin.
         this.crazyManager.load();
@@ -84,7 +98,7 @@ public class CrazyEnchantments extends JavaPlugin {
         this.pluginManager.registerEvents(new ScrollListener(), this);
         this.pluginManager.registerEvents(new SlotCrystalListener(), this);
 
-        this.pluginManager.registerEvents(this.fireworkDamageListener = new FireworkDamageListener(), this);
+        this.pluginManager.registerEvents(new FireworkDamageListener(), this);
         this.pluginManager.registerEvents(new ShopListener(), this);
 
         this.pluginManager.registerEvents(new MiscListener(), this);
@@ -153,17 +167,24 @@ public class CrazyEnchantments extends JavaPlugin {
         }
     }
 
+    public final FileManager getFileManager() {
+        return this.fileManager;
+    }
+
+    public final ConfigOptions getOptions() {
+        return this.options;
+    }
+
+    public final FusionPaper getFusion() {
+        return this.fusion;
+    }
+
     public CrazyManager getCrazyManager() {
         return this.crazyManager;
     }
 
     public Starter getStarter() {
         return this.starter;
-    }
-
-    // Plugin Listeners.
-    public FireworkDamageListener getFireworkDamageListener() {
-        return this.fireworkDamageListener;
     }
 
     public PluginManager getPluginManager() {
@@ -175,6 +196,6 @@ public class CrazyEnchantments extends JavaPlugin {
     }
 
     public boolean isLogging() {
-        return true;
+        return this.fusion.isVerbose();
     }
 }

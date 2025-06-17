@@ -4,36 +4,31 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.CrazyManager;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.EnchantedBook;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
-import com.google.gson.Gson;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CEBook {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    @NotNull
+    private final ConfigOptions options = this.plugin.getOptions();
+
     private final Starter starter = this.plugin.getStarter();
 
     private final CrazyManager crazyManager = this.plugin.getCrazyManager();
 
-    @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    @NotNull
     private final EnchantmentBookSettings enchantmentBookSettings = this.starter.getEnchantmentBookSettings();
 
     private CEnchantment enchantment;
@@ -68,14 +63,12 @@ public class CEBook {
         this.amount = amount;
         this.level = level;
 
-        FileConfiguration config = Files.CONFIG.getFile();
+        this.glowing = this.options.isEnchantmentBookGlowing();
 
-        this.glowing = config.getBoolean("Settings.Enchantment-Book-Glowing", true);
-
-        int successMax = config.getInt("Settings.BlackScroll.SuccessChance.Max", 100);
-        int successMin = config.getInt("Settings.BlackScroll.SuccessChance.Min", 15);
-        int destroyMax = config.getInt("Settings.BlackScroll.DestroyChance.Max", 100);
-        int destroyMin = config.getInt("Settings.BlackScroll.DestroyChance.Min", 15);
+        int successMax = this.options.getBlackScrollSuccessMax();
+        int successMin = this.options.getBlackScrollSuccessMin();
+        int destroyMax = this.options.getBlackScrollDestroyMax();
+        int destroyMin = this.options.getBlackScrollDestroyMin();
 
         this.destroyRate = this.methods.percentPick(destroyMax, destroyMin);
         this.successRate = this.methods.percentPick(successMax, successMin);
@@ -100,7 +93,7 @@ public class CEBook {
         this.enchantment = enchantment;
         this.amount = amount;
         this.level = level;
-        this.glowing = Files.CONFIG.getFile().getBoolean("Settings.Enchantment-Book-Glowing", true);
+        this.glowing = this.options.isEnchantmentBookGlowing();
         this.destroyRate = this.methods.percentPick(category.getMaxDestroyRate(), category.getMinDestroyRate());
         this.successRate = this.methods.percentPick(category.getMaxSuccessRate(), category.getMinSuccessRate());
     }
@@ -116,7 +109,7 @@ public class CEBook {
         this.enchantment = enchantment;
         this.amount = amount;
         this.level = level;
-        this.glowing = Files.CONFIG.getFile().getBoolean("Settings.Enchantment-Book-Glowing", true);
+        this.glowing = this.options.isEnchantmentBookGlowing();
         this.destroyRate = destroyRate;
         this.successRate = successRate;
     }
@@ -235,7 +228,7 @@ public class CEBook {
 
         List<String> lore = new ArrayList<>();
 
-        for (final String bookLine : Files.CONFIG.getFile().getStringList("Settings.EnchantmentBookLore")) {
+        for (final String bookLine : this.options.getEnchantmentBookLore()) {
             if (bookLine.contains("%Description%") || bookLine.contains("%description%")) {
                 for (final String enchantmentLine : this.enchantment.getInfoDescription()) {
                     lore.add(ColorUtils.color(enchantmentLine));
@@ -255,7 +248,7 @@ public class CEBook {
     public ItemStack buildBook() {
         final ItemStack item = getItemBuilder().build(); //TODO Directly set data instead of reconstructing the item.
 
-        final String data = new Gson().toJson(new EnchantedBook(this.enchantment.getName(), this.successRate, this.destroyRate, this.level), EnchantedBook.class);
+        final String data = Methods.getGson().toJson(new EnchantedBook(this.enchantment.getName(), this.successRate, this.destroyRate, this.level), EnchantedBook.class);
 
         item.editPersistentDataContainer(container -> {
             container.set(DataKeys.stored_enchantments.getNamespacedKey(), PersistentDataType.STRING, data);

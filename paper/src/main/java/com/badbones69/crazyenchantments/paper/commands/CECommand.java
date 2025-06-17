@@ -28,6 +28,9 @@ import com.badbones69.crazyenchantments.paper.api.utils.FileUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
+import com.ryderbelserion.crazyenchantments.enums.FileKeys;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
+import com.ryderbelserion.fusion.paper.FusionPaper;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -47,6 +50,10 @@ import java.util.*;
 public class CECommand implements CommandExecutor {
 
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
+
+    private final FusionPaper fusion = this.plugin.getFusion();
+
+    private final ConfigOptions options = this.plugin.getOptions();
 
     private final Server server = this.plugin.getServer();
 
@@ -134,6 +141,10 @@ public class CECommand implements CommandExecutor {
 
             case "reload" -> { // /ce reload
                 if (hasPermission(sender, "reload")) {
+                    this.fusion.reload(false); // reload fusion api
+
+                    this.options.init(); // refresh config options
+
                     this.crazyManager.getCEPlayers().forEach(name -> this.crazyManager.backupCEPlayer(name.getPlayer()));
 
                     this.fileManager.setup();
@@ -142,7 +153,7 @@ public class CECommand implements CommandExecutor {
 
                     this.crazyManager.load();
 
-                    BlackSmithManager.load();
+                    BlackSmithManager.load(FileKeys.config.getConfig());
 
                     KitsManager.load();
 

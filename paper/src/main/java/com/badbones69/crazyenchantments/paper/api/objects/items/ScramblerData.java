@@ -1,12 +1,12 @@
 package com.badbones69.crazyenchantments.paper.api.objects.items;
 
-import com.badbones69.crazyenchantments.paper.api.FileManager;
+import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 
 public class ScramblerData {
 
@@ -15,21 +15,19 @@ public class ScramblerData {
     private boolean animationToggle;
     private String guiName;
 
-    public void loadScrambler() {
-        final FileConfiguration config = FileManager.Files.CONFIG.getFile();
+    public void loadScrambler(final CommentedConfigurationNode config) {
+        this.scramblerItem = new ItemBuilder().setMaterial(config.node("Settings", "Scrambler", "Item").getString("SUNFLOWER"))
+                .setName(config.node("Settings", "Scrambler", "Name").getString("&e&lThe Grand Scrambler"))
+                .setLore(Methods.getStringList(config, "Settings", "Scrambler", "Lore"))
+                .setGlow(config.node("Settings", "Scrambler", "Glowing").getBoolean(false));
 
-        this.scramblerItem = new ItemBuilder().setMaterial(config.getString("Settings.Scrambler.Item", "SUNFLOWER"))
-                .setName(config.getString("Settings.Scrambler.Name", "&e&lThe Grand Scrambler"))
-                .setLore(config.getStringList("Settings.Scrambler.Lore"))
-                .setGlow(config.getBoolean("Settings.Scrambler.Glowing", false));
+        this.pointer = new ItemBuilder().setMaterial(config.node("Settings", "Scrambler", "GUI", "Pointer", "Item").getString("REDSTONE_TORCH"))
+                .setName(config.node("Settings", "Scrambler", "GUI", "Pointer", "Name").getString("&c&lPointer"))
+                .setLore(Methods.getStringList(config, "Settings", "Scrambler", "GUI", "Pointer", "Lore"));
 
-        this.pointer = new ItemBuilder().setMaterial(config.getString("Settings.Scrambler.GUI.Pointer.Item", "REDSTONE_TORCH"))
-                .setName(config.getString("Settings.Scrambler.GUI.Pointer.Name", "&c&lPointer"))
-                .setLore(config.getStringList("Settings.Scrambler.GUI.Pointer.Lore"));
+        this.animationToggle = config.node("Settings", "Scrambler", "GUI", "Toggle").getBoolean(true);
 
-        this.animationToggle = config.getBoolean("Settings.Scrambler.GUI.Toggle", true);
-
-        final String name = config.getString("Settings.Scrambler.GUI.Name", "&8Rolling the &eScrambler");
+        final String name = config.node("Settings", "Scrambler", "GUI", "Name").getString("&8Rolling the &eScrambler");
 
         this.guiName = name.isEmpty() ? name : ColorUtils.color(name); // only color if not empty.
     }

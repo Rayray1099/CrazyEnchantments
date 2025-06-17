@@ -1,55 +1,53 @@
 package com.badbones69.crazyenchantments.paper.api.managers;
 
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
+import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class WingsManager {
 
-    private boolean isWingsEnabled;
-    private boolean isCloudsEnabled;
-    private boolean isEnemyCheckEnabled;
-    private int enemyRadius;
-    private final List<UUID> flyingPlayers = new ArrayList<>();
+    private final List<String> limitlessFlightWorlds = new ArrayList<>();
     private final List<String> whitelistWorlds = new ArrayList<>();
     private final List<String> blacklistWorlds = new ArrayList<>();
-    private List<String> regions;
-    private final List<String> limitlessFlightWorlds = new ArrayList<>();
-    private boolean ownersCanFly;
-    private boolean membersCanFly;
+    private final List<UUID> flyingPlayers = new ArrayList<>();
+
+    private boolean isEnemyCheckEnabled;
+    private boolean isCloudsEnabled;
     private ScheduledTask wingsTask;
+    private boolean isWingsEnabled;
+    private boolean membersCanFly;
+    private boolean ownersCanFly;
+    private List<String> regions;
+    private int enemyRadius;
     
-    public void load() {
+    public void load(final CommentedConfigurationNode config) {
         this.isWingsEnabled = CEnchantments.WINGS.isActivated();
 
-        final FileConfiguration config = Files.CONFIG.getFile();
-
-        String path = "Settings.EnchantmentOptions.Wings.";
-
-        this.isCloudsEnabled = config.getBoolean(path + "Clouds", true);
-        this.isEnemyCheckEnabled = config.getBoolean(path + "Enemy-Toggle", true);
-        this.enemyRadius = config.getInt(path + "Distance", 10);
+        this.isCloudsEnabled = config.node("Settings", "EnchantmentOptions", "Wings", "Clouds").getBoolean(true);
+        this.isEnemyCheckEnabled = config.node("Settings", "EnchantmentOptions", "Wings", "Enemy-Toggle").getBoolean(true);
+        this.enemyRadius = config.node("Settings", "EnchantmentOptions", "Wings", "Distance").getInt(10);
 
         this.whitelistWorlds.clear();
 
-        config.getStringList(path + "Worlds.Whitelisted").forEach(world -> this.whitelistWorlds.add(world.toLowerCase()));
+        Methods.getStringList(config, "Settings", "EnchantmentOptions", "Wings", "Worlds", "Whitelist").forEach(world -> this.whitelistWorlds.add(world.toLowerCase()));
 
         this.blacklistWorlds.clear();
 
-        config.getStringList(path + "Worlds.Blacklisted").forEach(world -> this.blacklistWorlds.add(world.toLowerCase()));
+        Methods.getStringList(config, "Settings", "EnchantmentOptions", "Wings", "Worlds", "Blacklisted").forEach(world -> this.blacklistWorlds.add(world.toLowerCase()));
 
         this.limitlessFlightWorlds.clear();
 
-        config.getStringList(path + "Worlds.Limitless-Flight-Worlds").forEach(world -> this.limitlessFlightWorlds.add(world.toLowerCase()));
+        Methods.getStringList(config, "Settings", "EnchantmentOptions", "Wings", "Worlds", "Limitless-Flight-Worlds").forEach(world -> this.limitlessFlightWorlds.add(world.toLowerCase()));
 
-        this.regions = config.getStringList(path + "Regions");
-        this.ownersCanFly = config.getBoolean(path + "Owners-Can-Fly", true);
-        this.membersCanFly = config.getBoolean(path + "Members-Can-Fly", true);
+        this.regions = Methods.getStringList(config, "Settings", "EnchantmentOptions", "Wings", "Regions");
+
+        this.ownersCanFly = config.node("Settings", "EnchantmentOptions", "Wings", "Owners-Can-Fly").getBoolean(true);
+        this.membersCanFly = config.node("Settings", "EnchantmentOptions", "Wings", "Members-Can-Fly").getBoolean(true);
     }
     
     public boolean isWingsEnabled() {

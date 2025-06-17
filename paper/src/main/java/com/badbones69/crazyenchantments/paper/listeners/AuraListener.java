@@ -67,7 +67,6 @@ public class AuraListener implements Listener {
                 CEnchantments enchantmentEnum = getAuraEnchantmentEnum(enchantment);
 
                 if (enchantmentEnum != null) players.forEach((other) -> this.pluginManager.callEvent(new AuraActiveEvent(player, other, enchantmentEnum, level)));
-
             });
         }
 
@@ -81,7 +80,6 @@ public class AuraListener implements Listener {
                     final CEnchantments enchantmentEnum = getAuraEnchantmentEnum(enchantment);
 
                     if (enchantmentEnum != null) this.pluginManager.callEvent(new AuraActiveEvent(other, player, enchantmentEnum, level));
-
                 });
             }
         }

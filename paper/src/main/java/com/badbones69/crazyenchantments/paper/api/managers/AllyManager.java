@@ -1,17 +1,15 @@
 package com.badbones69.crazyenchantments.paper.api.managers;
 
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.objects.AllyMob;
 import com.badbones69.crazyenchantments.paper.api.objects.AllyMob.AllyType;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,18 +18,17 @@ import java.util.UUID;
 
 public class AllyManager {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
-    private final List<AllyMob> allyMobs = new ArrayList<>();
-    private final Map<UUID, List<AllyMob>> allyOwners = new HashMap<>();
+
     private final Map<AllyType, String> allyTypeNameCache = new HashMap<>();
+    private final Map<UUID, List<AllyMob>> allyOwners = new HashMap<>();
+    private final List<AllyMob> allyMobs = new ArrayList<>();
     
-    public void load() {
-        final FileConfiguration config = Files.CONFIG.getFile();
-        final String allyTypePath = "Settings.EnchantmentOptions.Ally-Mobs.";
+    public void load(final CommentedConfigurationNode config) {
+        final CommentedConfigurationNode node = config.node("Settings", "EnchantmentOptions", "Ally-Mobs");
 
         for (final AllyType type : AllyType.values()) {
-            this.allyTypeNameCache.put(type, ColorUtils.color(config.getString(allyTypePath + type.getConfigName(), type.getDefaultName())));
+            this.allyTypeNameCache.put(type, ColorUtils.color(node.node(type.getConfigName()).getString(type.getDefaultName())));
         }
     }
     

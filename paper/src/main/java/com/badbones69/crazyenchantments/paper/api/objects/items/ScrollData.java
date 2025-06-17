@@ -1,12 +1,6 @@
 package com.badbones69.crazyenchantments.paper.api.objects.items;
 
-import com.badbones69.crazyenchantments.paper.api.FileManager;
-import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
-import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
-import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 
 public class ScrollData {
 
@@ -16,13 +10,12 @@ public class ScrollData {
     private boolean blackScrollChanceToggle;
     private int blackScrollChance;
 
-    public void loadScrollControl() {
-        final FileConfiguration config = FileManager.Files.CONFIG.getFile();
-        this.suffix = config.getString("Settings.TransmogScroll.Amount-of-Enchantments", " &7[&6&n%amount%&7]");
-        this.countVanillaEnchantments = config.getBoolean("Settings.TransmogScroll.Count-Vanilla-Enchantments", true);
-        this.useSuffix = config.getBoolean("Settings.TransmogScroll.Amount-Toggle", true);
-        this.blackScrollChance = config.getInt("Settings.BlackScroll.Chance", 75);
-        this.blackScrollChanceToggle = config.getBoolean("Settings.BlackScroll.Chance-Toggle", false);
+    public void loadScrollControl(final CommentedConfigurationNode config) {
+        this.suffix = config.node("Settings", "TransmogScroll", "Amount-of-Enchantments").getString(" &7[&6&n%amount%&7]");
+        this.countVanillaEnchantments = config.node("Settings", "TransmogScroll", "Count-Vanilla-Enchantments").getBoolean(true);
+        this.useSuffix = config.node("Settings", "TransmogScroll", "Amount-Toggle").getBoolean(true);
+        this.blackScrollChance = config.node("Settings", "BlackScroll", "Chance").getInt(75);
+        this.blackScrollChanceToggle = config.node("Settings", "BlackScroll", "Chance-Toggle").getBoolean(false);
     }
 
     public String getSuffix() {

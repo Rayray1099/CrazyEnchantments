@@ -16,12 +16,10 @@ import com.badbones69.crazyenchantments.paper.api.utils.BowUtils;
 import com.badbones69.crazyenchantments.paper.controllers.EnchantmentControl;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
-import com.badbones69.crazyenchantments.paper.listeners.ScramblerListener;
-import com.badbones69.crazyenchantments.paper.listeners.ScrollListener;
-import com.badbones69.crazyenchantments.paper.listeners.SlotCrystalListener;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport.SupportedPlugins;
 import com.badbones69.crazyenchantments.paper.support.claims.SuperiorSkyBlockSupport;
+import com.ryderbelserion.crazyenchantments.enums.FileKeys;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,7 +71,7 @@ public class Starter {
         this.protectionCrystalSettings = new ProtectionCrystalSettings();
         this.enchantmentBookSettings = new EnchantmentBookSettings();
 
-        BlackSmithManager.load();
+        BlackSmithManager.load(FileKeys.config.getConfig());
         KitsManager.load();
 
         MenuManager.load();

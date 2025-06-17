@@ -3,9 +3,9 @@ package com.badbones69.crazyenchantments.paper.listeners;
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,22 +19,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProtectionCrystalListener implements Listener {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    @NotNull
+    private final ConfigOptions options = this.plugin.getOptions();
+
     private final Starter starter = this.plugin.getStarter();
 
-    @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    @NotNull
     private final ProtectionCrystalSettings protectionCrystalSettings = this.starter.getProtectionCrystalSettings();
 
     @EventHandler(ignoreCancelled = true)
@@ -93,7 +90,7 @@ public class ProtectionCrystalListener implements Listener {
             final PlayerInventory inventory = player.getInventory();
 
             // If the config does not have the option then it will lose the protection by default.
-            if (Files.CONFIG.getFile().getBoolean("Settings.ProtectionCrystal.Lose-Protection-On-Death", true)) {
+            if (this.options.isLoseProtectionOnDeath()) {
                 for (final ItemStack item : this.protectionCrystalSettings.getCrystalItems().get(player.getUniqueId())) {
                     inventory.addItem(this.protectionCrystalSettings.removeProtection(item));
                 }

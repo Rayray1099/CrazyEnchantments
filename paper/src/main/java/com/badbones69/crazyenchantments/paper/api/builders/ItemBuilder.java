@@ -1,6 +1,7 @@
 package com.badbones69.crazyenchantments.paper.api.builders;
 
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
+import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.CrazyManager;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
@@ -11,7 +12,6 @@ import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.google.gson.Gson;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
@@ -522,14 +522,12 @@ public class ItemBuilder {
             return;
         }
 
-        final Gson gson = new Gson();
-
         final Map<CEnchantment, Integer> currentEnchantments = this.settings.getEnchantments(itemStack);
 
         this.settings.removeEnchantments(itemStack, enchantments.keySet().stream().filter(currentEnchantments::containsKey).toList());
 
         final String data = itemStack.getPersistentDataContainer().get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING);
-        final Enchant enchantData = data != null ? gson.fromJson(data, Enchant.class) : new Enchant(new HashMap<>());
+        final Enchant enchantData = data != null ? Methods.getGson().fromJson(data, Enchant.class) : new Enchant(new HashMap<>());
 
         List<Component> lore = itemStack.lore();
 
@@ -551,7 +549,7 @@ public class ItemBuilder {
         itemStack.setData(DataComponentTypes.LORE, ItemLore.lore().addLines(lore).build());
 
         itemStack.editPersistentDataContainer(container -> {
-            container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, gson.toJson(enchantData));
+            container.set(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING, Methods.getGson().toJson(enchantData));
         });
     }
 

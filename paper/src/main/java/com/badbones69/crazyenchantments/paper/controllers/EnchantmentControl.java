@@ -4,7 +4,6 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.CrazyManager;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
 import com.badbones69.crazyenchantments.paper.api.enums.Scrolls;
 import com.badbones69.crazyenchantments.paper.api.events.BookApplyEvent;
@@ -14,9 +13,9 @@ import com.badbones69.crazyenchantments.paper.api.events.PreBookApplyEvent;
 import com.badbones69.crazyenchantments.paper.api.objects.CEBook;
 import com.badbones69.crazyenchantments.paper.api.objects.CEnchantment;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -37,6 +36,8 @@ public class EnchantmentControl implements Listener {
     @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
+    private final ConfigOptions options = this.plugin.getOptions();
+
     @NotNull
     private final Starter starter = this.plugin.getStarter();
 
@@ -51,7 +52,6 @@ public class EnchantmentControl implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void useEnchantedBook(InventoryClickEvent event) {
-        final FileConfiguration config = Files.CONFIG.getFile();
         final Player player = (Player) event.getWhoClicked();
         final ItemStack item = event.getCurrentItem();
         final ItemStack book = event.getCursor();
@@ -73,9 +73,7 @@ public class EnchantmentControl implements Listener {
         if (this.methods.isEventCancelled(preApplyEvent)) return;
 
         if (hasEnchantment) {
-            if (!config.getBoolean("Settings.EnchantmentOptions.Armor-Upgrade.Toggle", true)
-               || !(enchantments.get(enchantment) < ceBook.getLevel())
-            ) return;
+            if (!this.options.isArmorUpgradeToggle() || !(enchantments.get(enchantment) < ceBook.getLevel())) return;
 
             event.setCancelled(true);
 
@@ -101,7 +99,7 @@ public class EnchantmentControl implements Listener {
                 return;
             } else if (preApplyEvent.getDestroyed()) {
                 if (!this.methods.isEventCancelled(new BookDestroyEvent(player, item, ceBook))) {
-                    if (config.getBoolean("Settings.EnchantmentOptions.Armor-Upgrade.Enchantment-Break", true)) {
+                    if (this.options.isArmorUpgradeEnchantmentBreak()) {
                         if (hasWhiteScrollProtection) {
                             event.setCurrentItem(Scrolls.removeWhiteScrollProtection(item));
 
@@ -199,7 +197,7 @@ public class EnchantmentControl implements Listener {
 
         this.methods.playItemBreak(player, book);
 
-        if (config.getBoolean("Settings.EnchantmentOptions.Limit.Change-On-Fail", true)) event.setCurrentItem(this.crazyManager.changeEnchantmentLimiter(item, 1));
+        if (this.options.isLimitChangeOnFail()) event.setCurrentItem(this.crazyManager.changeEnchantmentLimiter(item, 1));
 
         player.setItemOnCursor(null);
     }
@@ -209,7 +207,7 @@ public class EnchantmentControl implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.useInteractedBlock().equals(Event.Result.ALLOW)) return;
 
-        if ((event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) && Files.CONFIG.getFile().getBoolean("Settings.EnchantmentOptions.Right-Click-Book-Description", true)) {
+        if ((event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) && this.options.isRightClickDescription()) {
             final ItemStack item = this.methods.getItemInHand(event.getPlayer());
 
             final CEBook book = this.enchantmentBookSettings.getCEBook(item);

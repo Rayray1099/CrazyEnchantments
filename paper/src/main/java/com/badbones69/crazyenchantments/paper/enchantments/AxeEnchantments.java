@@ -4,7 +4,6 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.CrazyManager;
-import com.badbones69.crazyenchantments.paper.api.FileManager;
 import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import com.badbones69.crazyenchantments.paper.api.events.MassBlockBreakEvent;
 import com.badbones69.crazyenchantments.paper.api.objects.CEnchantment;
@@ -14,6 +13,7 @@ import com.badbones69.crazyenchantments.paper.api.utils.EntityUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EventUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -33,7 +33,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,23 +43,18 @@ import java.util.LinkedList;
 
 public class AxeEnchantments implements Listener {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    @NotNull
+    private final ConfigOptions options = this.plugin.getOptions();
+
     private final Starter starter = this.plugin.getStarter();
 
-    @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    @NotNull
     private final EnchantmentBookSettings enchantmentBookSettings = this.starter.getEnchantmentBookSettings();
 
-    @NotNull
     private final CrazyManager crazyManager = this.plugin.getCrazyManager();
 
-    // Plugin Support.
-    @NotNull
     private final PluginSupport pluginSupport = this.starter.getPluginSupport();
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -75,7 +69,7 @@ public class AxeEnchantments implements Listener {
         if (!EnchantUtils.isMassBlockBreakActive(player, CEnchantments.TREEFELLER, enchantments)) return;
 
         final Set<Block> blockList = getTree(event.getBlock(), 5 * enchantments.get(CEnchantments.TREEFELLER.getEnchantment()));
-        final boolean damage = FileManager.Files.CONFIG.getFile().getBoolean("Settings.EnchantmentOptions.TreeFeller-Full-Durability", true);
+        final boolean damage = this.options.isTreefellerFullDurability();
 
         if (!new MassBlockBreakEvent(player, blockList).callEvent()) return;
 

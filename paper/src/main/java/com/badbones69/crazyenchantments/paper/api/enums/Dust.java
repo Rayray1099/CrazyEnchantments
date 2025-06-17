@@ -2,16 +2,15 @@ package com.badbones69.crazyenchantments.paper.api.enums;
 
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DustData;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
-import com.google.gson.Gson;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.ryderbelserion.crazyenchantments.enums.FileKeys;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -42,24 +41,23 @@ public enum Dust {
         this.name = name;
         this.knownNames = knowNames;
         this.configName = configName;
-        
-        FileConfiguration config = Files.CONFIG.getFile();
-        
-        this.max = config.getInt("Settings.Dust." + configName + ".PercentRange.Max", 100);
-        this.min = config.getInt("Settings.Dust." + configName + ".PercentRange.Min", max);
+
+        final CommentedConfigurationNode config = FileKeys.config.getConfig();
+
+        this.max = config.node("Settings", "Dust", configName, "PercentRange", "Max").getInt(100);
+        this.min = config.node("Settings", "Dust", configName, "PercentRange", "Min").getInt(this.max);
     }
     
-    public static void loadDust() {
-        final FileConfiguration config = Files.CONFIG.getFile();
+    public static void loadDust(final CommentedConfigurationNode config) {
 
         itemBuilderDust.clear();
 
         for (final Dust dust : values()) {
-            final String path = "Settings.Dust." + dust.getConfigName() + ".";
+            final CommentedConfigurationNode child = config.node("Settings", "Dust", dust.getConfigName());
 
-            Dust.itemBuilderDust.put(dust, new ItemBuilder().setName(config.getString(path + "Name", "Error getting name."))
-            .setLore(config.getStringList(path + "Lore"))
-            .setMaterial(config.getString(path + "Item", "GLOWSTONE_DUST")));
+            Dust.itemBuilderDust.put(dust, new ItemBuilder().setName(child.node("Name").getString("Error getting name."))
+            .setLore(Methods.getStringList(child, "Lore"))
+            .setMaterial(config.node("Item").getString("GLOWSTONE_DUST")));
         }
     }
     
@@ -96,9 +94,7 @@ public enum Dust {
 
         if (Objects.equals(getName(), FAILED_DUST.getName())) return item;
 
-        Gson gson = new Gson();
-
-        item.editPersistentDataContainer(container -> container.set(DataKeys.dust.getNamespacedKey(), PersistentDataType.STRING, gson.toJson(new DustData(getConfigName(), this.min, this.max, percent))));
+        item.editPersistentDataContainer(container -> container.set(DataKeys.dust.getNamespacedKey(), PersistentDataType.STRING, Methods.getGson().toJson(new DustData(getConfigName(), this.min, this.max, percent))));
 
         return item;
     }

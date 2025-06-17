@@ -3,7 +3,6 @@ package com.badbones69.crazyenchantments.paper.enchantments;
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import com.badbones69.crazyenchantments.paper.api.managers.BowEnchantmentManager;
 import com.badbones69.crazyenchantments.paper.api.objects.BowEnchantment;
@@ -14,6 +13,7 @@ import com.badbones69.crazyenchantments.paper.api.utils.EnchantUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EventUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -39,36 +39,28 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 public class BowEnchantments implements Listener {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
+
+    private final ConfigOptions options = this.plugin.getOptions();
 
     private final Server server = this.plugin.getServer();
 
     private final PluginManager pluginManager = this.server.getPluginManager();
 
-    @NotNull
     private final Starter starter = this.plugin.getStarter();
 
-    @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    @NotNull
     private final EnchantmentBookSettings enchantmentBookSettings = this.starter.getEnchantmentBookSettings();
 
-    // Plugin Support.
-    @NotNull
     private final PluginSupport pluginSupport = this.starter.getPluginSupport();
 
-    // Plugin Managers.
-    @NotNull
     private final BowEnchantmentManager bowEnchantmentManager = this.starter.getBowEnchantmentManager();
 
-    @NotNull
     private final BowUtils bowUtils = this.starter.getBowUtils();
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -120,7 +112,7 @@ public class BowEnchantments implements Listener {
 
             final Entity lightning = location.getWorld().strikeLightningEffect(location);
 
-            final int lightningSoundRange = Files.CONFIG.getFile().getInt("Settings.EnchantmentOptions.Lightning-Sound-Range", 160);
+            final int lightningSoundRange = this.options.getLightningSoundRange();
 
             try {
                 location.getWorld().playSound(location, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, (float) lightningSoundRange / 16f, 1);

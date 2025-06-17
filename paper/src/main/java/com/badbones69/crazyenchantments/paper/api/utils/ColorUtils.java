@@ -1,16 +1,17 @@
 package com.badbones69.crazyenchantments.paper.api.utils;
 
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
+import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -19,6 +20,10 @@ import java.util.regex.Pattern;
 import static java.util.regex.Matcher.quoteReplacement;
 
 public class ColorUtils {
+
+    private static final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
+
+    private static final ConfigOptions options = plugin.getOptions();
 
     public static void color(final List<Color> colors, final String colorString) {
         if (colorString.contains(", ")) {
@@ -56,6 +61,7 @@ public class ColorUtils {
         };
     }
 
+    @SuppressWarnings("deprecation")
     public static String color(final String message) { //TODO Remove the usage of bungee.
         Matcher matcher = Pattern.compile("#[a-fA-F\\d]{6}").matcher(message);
         StringBuilder buffer = new StringBuilder();
@@ -82,7 +88,7 @@ public class ColorUtils {
     }
 
     public static String getPrefix() {
-        return color(Files.CONFIG.getFile().getString("Settings.Prefix", "&8[&aCrazyEnchantments&8]: "));
+        return color(options.getPrefix());
     }
 
     public static String getPrefix(final String msg) {

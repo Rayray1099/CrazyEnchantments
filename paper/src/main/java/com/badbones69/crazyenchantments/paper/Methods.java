@@ -1,14 +1,17 @@
 package com.badbones69.crazyenchantments.paper;
 
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.builders.types.MenuManager;
 import com.badbones69.crazyenchantments.paper.api.economy.Currency;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
+import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.objects.enchants.EnchantmentType;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EventUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.support.PluginSupport;
+import com.google.gson.Gson;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
+import com.ryderbelserion.fusion.core.api.exceptions.FusionException;
 import com.ryderbelserion.fusion.paper.api.scheduler.FoliaScheduler;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import org.bukkit.*;
@@ -26,9 +29,13 @@ import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,14 +46,12 @@ import java.util.Random;
 
 public class Methods {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
-    @NotNull
+    private final ConfigOptions options = this.plugin.getOptions();
+
     private final Starter starter = this.plugin.getStarter();
 
-    // Plugin Support.
-    @NotNull
     private final PluginSupport pluginSupport = this.starter.getPluginSupport();
 
     public EnchantmentType getFromName(String name) {
@@ -257,6 +262,32 @@ public class Methods {
         fireWork(loc, new ArrayList<>(colors));
     }
 
+    private static final Gson gson = new Gson();
+
+    public static Gson getGson() {
+        return gson;
+    }
+
+    public static List<String> getStringList(@NotNull final CommentedConfigurationNode configurationNode, @NotNull final List<String> defaultValue, @NotNull final Object... path) {
+        final CommentedConfigurationNode node = configurationNode.node(path);
+
+        try {
+            final List<String> list = node.getList(String.class);
+
+            if (list != null) {
+                return list;
+            }
+
+            return defaultValue;
+        } catch (final SerializationException exception) {
+            throw new FusionException(String.format("Failed to serialize %s!", node.path()), exception);
+        }
+    }
+
+    public static List<String> getStringList(@NotNull final CommentedConfigurationNode configurationNode, @NotNull final Object... path) {
+        return getStringList(configurationNode, List.of(), path);
+    }
+
     public void fireWork(@NotNull Location loc, @NotNull ArrayList<Color> colors) {
         Firework firework = loc.getWorld().spawn(loc, Firework.class);
         FireworkMeta fireworkMeta = firework.getFireworkMeta();
@@ -269,7 +300,7 @@ public class Methods {
         fireworkMeta.setPower(0);
         firework.setFireworkMeta(fireworkMeta);
 
-        this.plugin.getFireworkDamageListener().addFirework(firework);
+        addFirework(firework);
 
         new FoliaScheduler(this.plugin, loc) {
             @Override
@@ -277,6 +308,12 @@ public class Methods {
                 firework.detonate();
             }
         }.runDelayed(2);
+    }
+
+    public void addFirework(final Entity firework) {
+        final PersistentDataContainer container = firework.getPersistentDataContainer();
+
+        container.set(DataKeys.no_firework_damage.getNamespacedKey(), PersistentDataType.BOOLEAN, true);
     }
 
     public Enchantment getEnchantment(@NotNull String enchantmentName) {
@@ -447,12 +484,13 @@ public class Methods {
 
     public Entity lightning(@NotNull LivingEntity entity) {
         Location loc = entity.getLocation();
+
         Entity lightning = null;
+
         if (loc.getWorld() != null) lightning = loc.getWorld().strikeLightning(loc);
-        int lightningSoundRange = Files.CONFIG.getFile().getInt("Settings.EnchantmentOptions.Lightning-Sound-Range", 160);
 
         try {
-            loc.getWorld().playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, (float) lightningSoundRange / 16f, 1);
+            loc.getWorld().playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, (float) this.options.getLightningSoundRange() / 16f, 1);
         } catch (Exception ignore) {}
 
         return lightning;

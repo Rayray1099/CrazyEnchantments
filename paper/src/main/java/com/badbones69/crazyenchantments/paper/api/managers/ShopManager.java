@@ -1,17 +1,17 @@
 package com.badbones69.crazyenchantments.paper.api.managers;
 
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
+import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.ShopOption;
 import com.badbones69.crazyenchantments.paper.api.objects.Category;
 import com.badbones69.crazyenchantments.paper.api.objects.LostBook;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,16 +34,15 @@ public class ShopManager {
     private final Map<ItemBuilder, Integer> customizerItems = new HashMap<>();
     private final Map<ItemBuilder, Integer> shopItems = new HashMap<>();
     
-    public void load() {
+    public void load(final CommentedConfigurationNode config) {
         this.customizerItems.clear();
         this.shopItems.clear();
-        final FileConfiguration config = Files.CONFIG.getFile();
 
-        this.inventoryName = ColorUtils.color(config.getString("Settings.InvName", "&4&l&nCrazy Enchanter"));
-        this.inventorySize = config.getInt("Settings.GUISize", 54);
-        this.enchantmentTableShop = config.getBoolean("Settings.EnchantmentOptions.Right-Click-Enchantment-Table", false);
+        this.inventoryName = ColorUtils.color(config.node("Settings", "InvName").getString("&4&l&nCrazy Enchanter"));
+        this.inventorySize = config.node("Settings", "GUISize").getInt(54);
+        this.enchantmentTableShop = config.node("Settings", "EnchantmentOptions", "Right-Click-Enchantment-Table").getBoolean(false);
 
-        for (final String customItemString : config.getStringList("Settings.GUICustomization")) {
+        for (final String customItemString : Methods.getStringList(config, "Settings", "GUICustomization")) {
             int slot = 0;
 
             for (String option : customItemString.split(", ")) {

@@ -4,13 +4,13 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.CrazyManager;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.CEnchantments;
 import com.badbones69.crazyenchantments.paper.api.events.MassBlockBreakEvent;
 import com.badbones69.crazyenchantments.paper.api.objects.CEnchantment;
 import com.badbones69.crazyenchantments.paper.api.utils.EnchantUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.EventUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -28,7 +28,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,23 +36,20 @@ import java.util.Set;
 
 public class PickaxeEnchantments implements Listener {
 
-    @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
+
+    private final ConfigOptions options = this.plugin.getOptions();
 
     private final Server server = this.plugin.getServer();
 
     private final PluginManager pluginManager = this.server.getPluginManager();
 
-    @NotNull
     private final Starter starter = this.plugin.getStarter();
 
-    @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    @NotNull
     private final CrazyManager crazyManager = this.plugin.getCrazyManager();
 
-    @NotNull
     private final EnchantmentBookSettings enchantmentBookSettings = this.starter.getEnchantmentBookSettings();
 
     private final Map<Player, Map<Block, BlockFace>> blocks = new HashMap<>();
@@ -87,7 +83,7 @@ public class PickaxeEnchantments implements Listener {
 
         final Map<CEnchantment, Integer> enchantments = enchantmentBookSettings.getEnchantments(currentItem);
 
-        boolean damage = Files.CONFIG.getFile().getBoolean("Settings.EnchantmentOptions.Blast-Full-Durability", true);
+        boolean damage = this.options.isBlastFullDurability();
 
         if (!(this.blocks.containsKey(player) && this.blocks.get(player).containsKey(initialBlock))) return;
         if (!EnchantUtils.isMassBlockBreakActive(player, CEnchantments.BLAST, enchantments)) return;
@@ -118,7 +114,7 @@ public class PickaxeEnchantments implements Listener {
         final Block currentBlock = event.getBlock();
         final ItemStack currentItem = this.methods.getItemInHand(player);
         final Map<CEnchantment, Integer> enchantments = this.enchantmentBookSettings.getEnchantments(currentItem);
-        final boolean damage = Files.CONFIG.getFile().getBoolean("Settings.EnchantmentOptions.VeinMiner-Full-Durability", true);
+        final boolean damage = this.options.isVeinMinerFullDurability();
 
         if (!EnchantUtils.isMassBlockBreakActive(player, CEnchantments.VEINMINER, enchantments)) return;
 

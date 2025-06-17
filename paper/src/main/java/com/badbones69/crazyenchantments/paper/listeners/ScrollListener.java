@@ -4,7 +4,6 @@ import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
 import com.badbones69.crazyenchantments.paper.api.CrazyManager;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.builders.types.MenuManager;
 import com.badbones69.crazyenchantments.paper.api.enums.Messages;
 import com.badbones69.crazyenchantments.paper.api.enums.Scrolls;
@@ -18,13 +17,12 @@ import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
 import com.badbones69.crazyenchantments.paper.api.utils.NumberUtils;
 import com.badbones69.crazyenchantments.paper.controllers.settings.EnchantmentBookSettings;
 import com.badbones69.crazyenchantments.paper.controllers.settings.ProtectionCrystalSettings;
-import com.google.gson.Gson;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,7 +34,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +43,8 @@ import java.util.stream.Collectors;
 public class ScrollListener implements Listener {
 
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
+
+    private final ConfigOptions options = this.plugin.getOptions();
 
     private final CrazyManager crazyManager = this.plugin.getCrazyManager();
 
@@ -177,25 +176,19 @@ public class ScrollListener implements Listener {
     }
 
     private ItemStack newOrderNewEnchantments(final ItemStack item) {
-        Gson gson = new Gson();
-
         final List<Component> lore = item.lore();
 
         final PersistentDataContainerView container = item.getPersistentDataContainer();
 
-        final Enchant data = gson.fromJson(container.get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING), Enchant.class);
+        final Enchant data = Methods.getGson().fromJson(container.get(DataKeys.enchantments.getNamespacedKey(), PersistentDataType.STRING), Enchant.class);
 
-        final FileConfiguration configuration = Files.CONFIG.getFile();
-
-        final boolean addSpaces = configuration.getBoolean("Settings.TransmogScroll.Add-Blank-Lines", true);
+        final boolean addSpaces = this.options.isTransmogAddBlankLines();
 
         final List<CEnchantment> newEnchantmentOrder = new ArrayList<>();
 
         final Map<CEnchantment, Integer> enchantments = new HashMap<>();
 
-        List<String> order = configuration.getStringList("Settings.TransmogScroll.Lore-Order");
-
-        if (order.isEmpty()) order = Arrays.asList("CE_Enchantments", "Protection", "Normal_Lore");
+        final List<String> order = this.options.getTransmogLoreOrder();
 
         if (data == null) return item; // Only order if it has CE_Enchants
 
@@ -253,12 +246,15 @@ public class ScrollListener implements Listener {
     }
 
     private List<Component> getAllProtectionLore(final PersistentDataContainerView container) {
-        List<Component> lore = new ArrayList<>();
+        final List<Component> lore = new ArrayList<>();
 
-        final FileConfiguration configuration = Files.CONFIG.getFile();
+        if (Scrolls.hasWhiteScrollProtection(container)) {
+            lore.add(ColorUtils.legacyTranslateColourCodes(this.options.getWhiteScrollProtectedName()));
+        }
 
-        if (Scrolls.hasWhiteScrollProtection(container)) lore.add(ColorUtils.legacyTranslateColourCodes(configuration.getString("Settings.WhiteScroll.ProtectedName", "&b&lPROTECTED")));
-        if (ProtectionCrystalSettings.isProtected(container)) lore.add(ColorUtils.legacyTranslateColourCodes(configuration.getString("Settings.ProtectionCrystal.Protected", "&6Ancient Protection")));
+        if (ProtectionCrystalSettings.isProtected(container)) {
+            lore.add(ColorUtils.legacyTranslateColourCodes(this.options.getProtectionCrystalProtected()));
+        }
 
         return lore;
     }
@@ -277,7 +273,7 @@ public class ScrollListener implements Listener {
 
         // Remove Protection-crystal protection lore
         lore.removeIf(loreComponent -> ColorUtils.toPlainText(loreComponent).contains(
-                ColorUtils.stripStringColour(Files.CONFIG.getFile().getString("Settings.ProtectionCrystal.Protected", "&6Ancient Protection"))
+                ColorUtils.stripStringColour(this.options.getProtectionCrystalProtected())
         ));
 
         return lore;

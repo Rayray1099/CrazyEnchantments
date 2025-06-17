@@ -39,7 +39,6 @@ public class FileUtils { //todo() use fusion api
 
         List.of(
                 "BlockList.yml",
-                "config.yml",
                 "Data.yml",
                 "Enchantment-Types.yml",
                 "Enchantments.yml",

@@ -3,15 +3,15 @@ package com.badbones69.crazyenchantments.paper.controllers.settings;
 import com.badbones69.crazyenchantments.paper.CrazyEnchantments;
 import com.badbones69.crazyenchantments.paper.Methods;
 import com.badbones69.crazyenchantments.paper.Starter;
-import com.badbones69.crazyenchantments.paper.api.FileManager.Files;
 import com.badbones69.crazyenchantments.paper.api.enums.pdc.DataKeys;
 import com.badbones69.crazyenchantments.paper.api.builders.ItemBuilder;
 import com.badbones69.crazyenchantments.paper.api.utils.ColorUtils;
+import com.ryderbelserion.crazyenchantments.objects.ConfigOptions;
+import com.ryderbelserion.fusion.core.files.types.YamlCustomFile;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -27,27 +27,30 @@ public class ProtectionCrystalSettings {
     @NotNull
     private final CrazyEnchantments plugin = JavaPlugin.getPlugin(CrazyEnchantments.class);
 
+    private final ConfigOptions options = this.plugin.getOptions();
+
     @NotNull
     private final Starter starter = this.plugin.getStarter();
 
     @NotNull
     private final Methods methods = this.starter.getMethods();
 
-    @NotNull
-    private final String protectionString = ColorUtils.color(Files.CONFIG.getFile().getString("Settings.ProtectionCrystal.Protected", "&6Ancient Protection"));
-
     private final HashMap<UUID, List<ItemStack>> crystalItems = new HashMap<>();
 
     private ItemBuilder crystal;
 
-    public void loadProtectionCrystal() {
-        FileConfiguration config = Files.CONFIG.getFile();
-
+    public void loadProtectionCrystal(@NotNull final YamlCustomFile config) {
         this.crystal = new ItemBuilder()
-                .setMaterial(config.getString("Settings.ProtectionCrystal.Item", "EMERALD"))
-                .setName(config.getString("Settings.ProtectionCrystal.Name", "&5&lProtection &b&lCrystal"))
-                .setLore(config.getStringList("Settings.ProtectionCrystal.Lore"))
-                .setGlow(config.getBoolean("Settings.ProtectionCrystal.Glowing", false));
+                .setMaterial(config.getStringValueWithDefault( "EMERALD", "Settings", "ProtectionCrystal", "Item"))
+                .setName(config.getStringValueWithDefault("&5&lProtection &b&lCrystal", "Settings", "ProtectionCrystal", "Name"))
+                .setLore(config.getStringList(List.of(
+                        "&7A rare crystal that is said to",
+                        "&7protect items from getting lost",
+                        "&7while the owners away in the after life.",
+                        "",
+                        "&7&l(&6&l!&7&l) &7Drag and drop on an item."
+                ), "Settings", "ProtectionCrystal", "Lore"))
+                .setGlow(config.getBooleanValueWithDefault(false, "Settings", "ProtectionCrystal", "Glowing"));
     }
 
     public ItemStack getCrystals() {
@@ -112,9 +115,7 @@ public class ProtectionCrystalSettings {
     public boolean isProtectionSuccessful(final Player player) {
         if (player.hasPermission("crazyenchantments.bypass.protectioncrystal")) return true;
 
-        final FileConfiguration config = Files.CONFIG.getFile();
-
-        if (config.getBoolean("Settings.ProtectionCrystal.Chance.Toggle", false)) return this.methods.randomPicker(config.getInt("Settings.ProtectionCrystal.Chance.Success-Chance", 100), 100);
+        if (this.options.isProtectionCrystalChanceToggle()) return this.methods.randomPicker(this.options.getProtectionCrystalSuccessChance(), 100);
 
         return true;
     }
@@ -154,7 +155,7 @@ public class ProtectionCrystalSettings {
         final List<Component> lore = item.lore();
 
         if (lore != null) {
-            lore.removeIf(loreComponent -> ColorUtils.toPlainText(loreComponent).contains(ColorUtils.stripStringColour(this.protectionString)));
+            lore.removeIf(loreComponent -> ColorUtils.toPlainText(loreComponent).contains(ColorUtils.stripStringColour(this.options.getProtectionCrystalProtected())));
 
             item.setData(DataComponentTypes.LORE, ItemLore.lore().addLines(lore).build());
         }
@@ -176,7 +177,7 @@ public class ProtectionCrystalSettings {
             container.set(DataKeys.protected_item.getNamespacedKey(), PersistentDataType.BOOLEAN, true);
         });
 
-        lore.add(ColorUtils.legacyTranslateColourCodes(this.protectionString));
+        lore.add(ColorUtils.legacyTranslateColourCodes(this.options.getProtectionCrystalProtected()));
 
         item.setData(DataComponentTypes.LORE, ItemLore.lore().addLines(lore).build());
 
