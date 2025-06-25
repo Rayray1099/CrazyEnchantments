@@ -142,6 +142,8 @@ public class CECommand implements CommandExecutor {
                 if (hasPermission(sender, "reload")) {
                     this.fusion.reload(false); // reload fusion api
 
+                    this.fusion.getFileManager().refresh(false); // refresh files
+
                     this.crazyInstance.reload();
 
                     this.crazyManager.getCEPlayers().forEach(name -> this.crazyManager.backupCEPlayer(name.getPlayer()));
