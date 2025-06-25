@@ -65,8 +65,15 @@ tasks {
         }
     }
 
+    runPaper.folia.registerTask()
+
     runServer {
         jvmArgs("-Dnet.kyori.ansi.colorLevel=truecolor")
+        jvmArgs("-Dcom.mojang.eula.agree=true")
+
+        downloadPlugins {
+            modrinth("luckperms", "v5.5.0-bukkit")
+        }
 
         defaultCharacterEncoding = Charsets.UTF_8.name()
 
