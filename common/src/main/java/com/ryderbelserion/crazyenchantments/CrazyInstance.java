@@ -36,6 +36,7 @@ public class CrazyInstance implements ICrazyEnchantments {
                 "Messages.yml",
                 "Tinker.yml"
         ).forEach(name -> FileUtils.extract(name, this.path.resolve("examples"), new ArrayList<>() {{
+            add(FileAction.EXTRACT_FOLDER);
             add(FileAction.DELETE);
         }}));
 
@@ -55,6 +56,7 @@ public class CrazyInstance implements ICrazyEnchantments {
                 "Messages.yml",
                 "Tinker.yml"
         ).forEach(name -> FileUtils.extract(name, this.path.resolve("examples"), new ArrayList<>() {{
+            add(FileAction.EXTRACT_FOLDER);
             add(FileAction.DELETE);
         }}));
 
